@@ -106,19 +106,21 @@ function buildSVG({ code, savedAt, dayCurr, dayPrev, dayDelta, plCurr, plPrev, c
     `;
   }).join('');
 
-  // ── CG 섹션 (y: 496~630) ──
-  const cgSectionY = 500;
+  // ── CG 섹션 (y: 476~632) ──
+  // 호감도 끝 y≈468, 푸터 시작 y=640 → 가용 172px
+  const cgSectionY = 476;
   const cgCols     = 10;
-  const cgCellW    = Math.floor((W - 72) / cgCols);
-  const cgCellH    = 40;
+  const cgCellW    = Math.floor((W - 72) / cgCols); // 64px
+  const cgCellH    = 20;  // 셀 높이
+  const cgRowGap   = 28;  // 행 간격
 
   const cgSection = `
-    <line x1="36" y1="${cgSectionY - 6}" x2="${W - 36}" y2="${cgSectionY - 6}"
+    <line x1="36" y1="${cgSectionY - 4}" x2="${W - 36}" y2="${cgSectionY - 4}"
       stroke="#ffffff12" stroke-width="1"/>
-    <text x="36" y="${cgSectionY + 16}" font-family="'Courier New',monospace"
-      font-size="11" fill="#ffffff44" letter-spacing="2">CG GALLERY</text>
-    <text x="${W - 36}" y="${cgSectionY + 16}" text-anchor="end"
-      font-family="'Courier New',monospace" font-size="11"
+    <text x="36" y="${cgSectionY + 13}" font-family="'Courier New',monospace"
+      font-size="10" fill="#ffffff44" letter-spacing="2">CG GALLERY</text>
+    <text x="${W - 36}" y="${cgSectionY + 13}" text-anchor="end"
+      font-family="'Courier New',monospace" font-size="10"
       fill="#ffffff44">${cgAll.length} / 50</text>
     ${MAIN_CHARS.map((c, ci) => {
       const col = CHAR_INFO[c].color;
@@ -127,20 +129,20 @@ function buildSVG({ code, savedAt, dayCurr, dayPrev, dayDelta, plCurr, plPrev, c
         const isNew  = cgNew.includes(key);
         const isHave = cgAll.includes(key);
         const cellX  = 36 + gi * cgCellW;
-        const cellY  = cgSectionY + 24 + ci * (cgCellH - 8);
+        const cellY  = cgSectionY + 20 + ci * cgRowGap;
         const fill   = isNew ? col : isHave ? `${col}66` : '#ffffff0a';
         const stroke = isNew ? '#ffffff' : isHave ? `${col}55` : '#ffffff14';
-        return `<rect x="${cellX}" y="${cellY}" width="${cgCellW - 4}" height="${cgCellH - 14}"
+        return `<rect x="${cellX}" y="${cellY}" width="${cgCellW - 4}" height="${cgCellH}"
           rx="3" fill="${fill}" stroke="${stroke}" stroke-width="1"/>`;
       }).join('');
     }).join('')}
   `;
 
-  // ── 푸터 (y: 660~720) ──
+  // ── 푸터 (y: 640~720) ──
   const footer = `
-    <line x1="36" y1="660" x2="${W - 36}" y2="660"
+    <line x1="36" y1="643" x2="${W - 36}" y2="643"
       stroke="${pcol}33" stroke-width="1"/>
-    <text x="${W / 2}" y="690" text-anchor="middle"
+    <text x="${W / 2}" y="675" text-anchor="middle"
       font-family="'Courier New',monospace" font-size="11"
       fill="${pcol}66" letter-spacing="3">LUMINOUS JOURNEY</text>
     <rect x="0" y="${H - 3}" width="${W}" height="3" fill="${pcol}44"/>
