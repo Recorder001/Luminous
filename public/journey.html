@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luminous — Journey</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #0d0d14;
+      --bg2:    #12121e;
+      --bg3:    #1a1a2e;
+      --border: #ffffff18;
+      --text:   #f0ece4;
+      --muted:  #ffffff55;
+      --k: #d4a574; --n: #a574d4; --e: #74a5d4; --r: #d47474; --a: #74d4a5;
+      --p1: #e8b86d; --p2: #8dc4e8; --p3: #7ed4a0; --p4: #9b8ec4; --p5: #e8d06d;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* ── 상단 헤더 ── */
+    #site-header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    #site-header h1 { font-size: 18px; letter-spacing: 5px; color: var(--p1); }
+    #code-badge {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 14px;
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+    #summary-chips { display: flex; gap: 10px; margin-left: auto; }
+    .chip {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+    .chip span { color: var(--text); font-weight: bold; }
+
+    /* ── 메인 레이아웃 ── */
+    #main { max-width: 1100px; margin: 0 auto; padding: 36px 24px 80px; }
+
+    /* ── 섹션 타이틀 ── */
+    .section-title {
+      font-size: 10px;
+      letter-spacing: 4px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      margin-top: 40px;
+    }
+
+    /* ── 행성 진행 ── */
+    #planet-bar {
+      display: flex;
+      gap: 8px;
+    }
+    .planet-node {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 10px;
+      text-align: center;
+      opacity: 0.35;
+      transition: opacity 0.2s;
+    }
+    .planet-node.visited { opacity: 1; border-color: var(--pc); }
+    .planet-node.current { border-color: var(--pc); box-shadow: 0 0 12px var(--pc)44; }
+    .planet-node .pname { font-size: 13px; font-weight: bold; }
+    .planet-node .pdays { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+    /* ── CG 갤러리 ── */
+    #cg-gallery { display: flex; flex-direction: column; gap: 8px; }
+    .cg-row { display: flex; align-items: center; gap: 6px; }
+    .cg-row-label { width: 50px; font-size: 12px; font-weight: bold; flex-shrink: 0; }
+    .cg-cells { display: flex; gap: 5px; flex: 1; }
+    .cg-cell {
+      flex: 1;
+      height: 28px;
+      border-radius: 4px;
+      border: 1px solid #ffffff14;
+      background: #ffffff08;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #ffffff22;
+      transition: background 0.2s;
+    }
+    .cg-cell.unlocked { color: #ffffff; border-color: var(--cc); background: var(--cc); opacity: 0.7; }
+
+    /* ── 저장 목록 ── */
+    #saves-list { display: flex; flex-direction: column; gap: 16px; }
+
+    .save-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--pc, #ffffff33);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .save-card-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .day-badge {
+      background: var(--pc);
+      color: #0d0d14;
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-size: 15px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .save-meta { flex: 1; }
+    .save-meta .planet-name { font-size: 14px; font-weight: bold; color: var(--pc); }
+    .save-meta .loc-time { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .save-meta .saved-at { font-size: 10px; color: #ffffff33; margin-top: 2px; }
+    .day-delta {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--p1);
+      opacity: 0.6;
+    }
+
+    .save-card-body { padding: 16px 20px; }
+
+    /* 호감도 테이블 */
+    .af-table { width: 100%; border-collapse: collapse; }
+    .af-table td { padding: 5px 8px; font-size: 12px; vertical-align: middle; }
+    .af-table td:first-child { width: 60px; font-weight: bold; }
+    .af-bar-wrap { position: relative; height: 8px; background: #ffffff0a; border-radius: 4px; overflow: hidden; width: 100%; }
+    .af-bar-fill { height: 100%; border-radius: 4px; }
+    .af-val { width: 36px; text-align: right; font-size: 12px; }
+    .af-delta { width: 40px; text-align: right; font-size: 11px; }
+    .af-mind { font-size: 11px; color: #ffffff55; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* 신규 CG 뱃지 */
+    .cg-new-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .cg-new-badge {
+      background: #ffffff18;
+      border: 1px solid #ffffff33;
+      border-radius: 3px;
+      padding: 2px 8px;
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+    .cg-new-label { font-size: 10px; color: var(--muted); align-self: center; }
+
+    /* ── 로딩 / 에러 ── */
+    #state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50vh;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 2px;
+    }
+    #state.err { color: #d47474; }
+  </style>
+</head>
+<body>
+
+<div id="site-header">
+  <h1>LUMINOUS</h1>
+  <div id="code-badge">—</div>
+  <div id="summary-chips" style="display:none">
+    <div class="chip">저장 <span id="s-count">0</span>회</div>
+    <div class="chip">Day <span id="s-day">0</span></div>
+    <div class="chip">CG <span id="s-cg">0</span> / 50</div>
+  </div>
+</div>
+
+<div id="state">LOADING…</div>
+
+<div id="main" style="display:none">
+  <div class="section-title">PLANET PROGRESS</div>
+  <div id="planet-bar"></div>
+
+  <div class="section-title">CG GALLERY</div>
+  <div id="cg-gallery"></div>
+
+  <div class="section-title">SAVE HISTORY</div>
+  <div id="saves-list"></div>
+</div>
+
+<script>
+const CHARS = [
+  { key: 'k', name: 'Kalia',  color: '#d4a574' },
+  { key: 'n', name: 'Nova',   color: '#a574d4' },
+  { key: 'e', name: 'Elina',  color: '#74a5d4' },
+  { key: 'r', name: 'Rita',   color: '#d47474' },
+  { key: 'a', name: 'Aira',   color: '#74d4a5' },
+];
+const PLANETS = [
+  { name: 'Solaris',  color: '#e8b86d' },
+  { name: 'Glaceon',  color: '#8dc4e8' },
+  { name: 'Verdania', color: '#7ed4a0' },
+  { name: 'Umbra',    color: '#9b8ec4' },
+  { name: 'Aethon',   color: '#e8d06d' },
+];
+const CG_IDS = ['01','02','03','04','05','06','07','08','09','10'];
+
+function esc(s) {
+  return String(s ?? '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function deltaLabel(n) {
+  if (!n || n === 0) return '';
+  return n > 0 ? `<span style="color:#74d4a5">+${n}</span>`
+               : `<span style="color:#d47474">${n}</span>`;
+}
+
+// ── 초기화 ──────────────────────────────────────────
+const params = new URLSearchParams(location.search);
+const code   = params.get('code');
+
+if (!code) {
+  setState('코드가 없습니다. /?code=XXXX 형식으로 접근해주세요.', true);
+} else {
+  document.getElementById('code-badge').textContent = code;
+  loadJourney(code);
+}
+
+function setState(msg, err = false) {
+  const el = document.getElementById('state');
+  el.textContent = msg;
+  el.className = err ? 'err' : '';
+  el.style.display = 'flex';
+  document.getElementById('main').style.display = 'none';
+}
+
+async function loadJourney(code) {
+  try {
+    const r = await fetch(`/api/journey?code=${encodeURIComponent(code)}`);
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({}));
+      return setState(d.error || '조회 실패', true);
+    }
+    const { saves, cg } = await r.json();
+    render(saves || [], cg || []);
+  } catch (err) {
+    setState('네트워크 오류', true);
+  }
+}
+
+// ── 렌더링 ──────────────────────────────────────────
+function render(saves, cgList) {
+  document.getElementById('state').style.display = 'none';
+  document.getElementById('main').style.display  = 'block';
+  document.getElementById('summary-chips').style.display = 'flex';
+
+  const lastSave  = saves[0];
+  const maxDay    = lastSave?.day_curr ?? 0;
+  const cgCount   = cgList.length;
+
+  document.getElementById('s-count').textContent = saves.length;
+  document.getElementById('s-day').textContent   = maxDay;
+  document.getElementById('s-cg').textContent    = cgCount;
+
+  renderPlanets(saves, maxDay);
+  renderCGGallery(cgList);
+  renderSaves(saves);
+}
+
+function renderPlanets(saves, maxDay) {
+  function dayToPlanet(d) { return Math.min(5, Math.ceil(d / 5)); }
+  const maxPl = maxDay > 0 ? dayToPlanet(maxDay) : 0;
+
+  // 행성별 방문 일수 계산
+  const planetDays = Array(5).fill(0);
+  saves.forEach(s => {
+    const pl = s.pl_curr;
+    if (pl >= 1 && pl <= 5) planetDays[pl - 1]++;
+  });
+
+  const bar = document.getElementById('planet-bar');
+  bar.innerHTML = PLANETS.map((p, i) => {
+    const pl      = i + 1;
+    const visited = pl <= maxPl;
+    const current = pl === maxPl;
+    const days    = planetDays[i];
+    return `
+      <div class="planet-node ${visited ? 'visited' : ''} ${current ? 'current' : ''}"
+           style="--pc:${p.color}; border-color:${visited ? p.color + '88' : ''}; ${current ? `box-shadow:0 0 14px ${p.color}44` : ''}">
+        <div class="pname" style="color:${visited ? p.color : ''}">${p.name}</div>
+        <div class="pdays">${days ? `${days}회 저장` : '—'}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderCGGallery(cgList) {
+  const unlocked = new Set(cgList.map(c => `${c.chr}_${c.cg_id}`));
+  const gallery  = document.getElementById('cg-gallery');
+
+  gallery.innerHTML = CHARS.map(ch => {
+    const cells = CG_IDS.map(id => {
+      const key  = `${ch.key}_${id}`;
+      const have = unlocked.has(key);
+      return `<div class="cg-cell ${have ? 'unlocked' : ''}"
+        style="${have ? `--cc:${ch.color}; background:${ch.color}99; border-color:${ch.color}` : ''}">
+        ${have ? id : ''}
+      </div>`;
+    }).join('');
+    return `
+      <div class="cg-row">
+        <div class="cg-row-label" style="color:${ch.color}">${ch.name}</div>
+        <div class="cg-cells">${cells}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderSaves(saves) {
+  const list = document.getElementById('saves-list');
+
+  if (saves.length === 0) {
+    list.innerHTML = '<div style="color:#ffffff33;font-size:13px;padding:20px 0;">저장 기록 없음</div>';
+    return;
+  }
+
+  list.innerHTML = saves.map((s, idx) => {
+    const pl    = PLANETS[(s.pl_curr || 1) - 1] || PLANETS[0];
+    const pcol  = pl.color;
+    const delta = s.day_delta > 0 ? `+${s.day_delta}` : '';
+
+    // 호감도 행
+    const afRows = CHARS.map(ch => {
+      const prev  = s[`${ch.key}_af_prev`] ?? 0;
+      const curr  = s[`${ch.key}_af_curr`] ?? 0;
+      const delt  = s[`${ch.key}_af_delta`] ?? 0;
+      const mind  = s[`${ch.key}_m`] || '';
+      const pct   = Math.min(100, Math.max(0, curr));
+      return `
+        <tr>
+          <td style="color:${ch.color}">${ch.name}</td>
+          <td style="min-width:160px">
+            <div class="af-bar-wrap">
+              <div class="af-bar-fill" style="width:${pct}%;background:${ch.color}cc"></div>
+            </div>
+          </td>
+          <td class="af-val" style="color:${ch.color}">${curr}</td>
+          <td class="af-delta">${deltaLabel(delt)}</td>
+          <td class="af-mind">${esc(mind)}</td>
+        </tr>`;
+    }).join('');
+
+    // 신규 CG
+    const cgNewStr = s.cg_new || '';
+    const cgNewArr = cgNewStr ? cgNewStr.split(',').filter(Boolean) : [];
+    const cgNewHtml = cgNewArr.length
+      ? `<div class="cg-new-row">
+          <span class="cg-new-label">NEW CG</span>
+          ${cgNewArr.map(k => `<span class="cg-new-badge">${esc(k)}</span>`).join('')}
+        </div>`
+      : '';
+
+    const savedAt = s.saved_at ? s.saved_at.slice(0, 16).replace('T', ' ') : '';
+
+    return `
+      <div class="save-card" style="border-left-color:${pcol}">
+        <div class="save-card-header">
+          <div class="day-badge" style="background:${pcol}">Day ${s.day_curr}</div>
+          <div class="save-meta">
+            <div class="planet-name" style="color:${pcol}">${pl.name}</div>
+            <div class="loc-time">${esc(s.loc || '—')} · ${esc(s.time_of_day || '—')} · ${esc(s.date_str || '—')}</div>
+            <div class="saved-at">${savedAt} UTC · Turn ${s.turn ?? '—'}</div>
+          </div>
+          ${delta ? `<div class="day-delta">${delta}</div>` : ''}
+        </div>
+        <div class="save-card-body">
+          <table class="af-table">${afRows}</table>
+          ${cgNewHtml}
+        </div>
+      </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

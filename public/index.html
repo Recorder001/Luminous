@@ -111,7 +111,10 @@
         const r = await fetch('/api/generate-code', { method: 'POST' });
         const d = await r.json();
         if (d.code) {
-          el.textContent = '발급 완료: ' + d.code;
+          el.innerHTML = `발급 완료: <strong>${d.code}</strong>
+            &nbsp;&nbsp;<a href="/journey.html?code=${d.code}"
+              style="color:#e8b86d;text-decoration:none;border-bottom:1px solid #e8b86d55"
+              target="_blank">여정 보기 →</a>`;
         } else {
           el.className = 'result err';
           el.textContent = d.error || '오류 발생';
@@ -129,6 +132,7 @@
       res.className = 'result';
       res.textContent = '조회 중…';
       list.innerHTML = '';
+      if (!code) { res.className = 'result err'; res.textContent = '코드를 입력해주세요'; return; }
       try {
         const r = await fetch('/api/journey?code=' + encodeURIComponent(code));
         const d = await r.json();
@@ -138,7 +142,10 @@
           return;
         }
         const saves = d.saves || [];
-        res.textContent = `저장 ${saves.length}건 / CG ${(d.cg || []).length}개 언락`;
+        res.innerHTML = `저장 ${saves.length}건 / CG ${(d.cg || []).length}개 언락
+          &nbsp;&nbsp;<a href="/journey.html?code=${code}"
+            style="color:#e8b86d;text-decoration:none;border-bottom:1px solid #e8b86d55"
+            target="_blank">전체 여정 보기 →</a>`;
         list.innerHTML = saves.map(s => `
           <div class="save-item">
             <strong>Day ${s.day_curr}</strong>

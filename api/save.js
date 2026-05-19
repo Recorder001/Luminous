@@ -142,9 +142,12 @@ function buildSVG({ code, savedAt, dayCurr, dayPrev, dayDelta, plCurr, plPrev, c
   const footer = `
     <line x1="36" y1="643" x2="${W - 36}" y2="643"
       stroke="${pcol}33" stroke-width="1"/>
-    <text x="${W / 2}" y="675" text-anchor="middle"
+    <text x="${W / 2}" y="668" text-anchor="middle"
       font-family="'Courier New',monospace" font-size="11"
       fill="${pcol}66" letter-spacing="3">LUMINOUS JOURNEY</text>
+    <text x="${W / 2}" y="692" text-anchor="middle"
+      font-family="'Courier New',monospace" font-size="10"
+      fill="${pcol}44">journey.html?code=${e(code)}</text>
     <rect x="0" y="${H - 3}" width="${W}" height="3" fill="${pcol}44"/>
   `;
 
