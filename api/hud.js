@@ -109,7 +109,7 @@ function buildSVG({ turn, time, loc, date, day }) {
   const planetDiv = `<line x1="${CONTENT_W}" y1="12" x2="${CONTENT_W}" y2="${H - 12}"
     stroke="${pcol}" stroke-width="0.8" opacity="0.35"/>`;
 
-  // ── 컬럼 텍스트 (필터 없음 — resvg 호환 2레이어 글로우) ────
+  // ── 컬럼 텍스트 — blur 글로우 레이어 + 선명 레이어 ─────────
   const cells = fields.map((f, i) => {
     const { cx, maxTextW } = cols[i];
     const val   = e(f.value);
@@ -119,18 +119,15 @@ function buildSVG({ turn, time, loc, date, day }) {
       : '';
 
     return `
-  <!-- ${f.label} glow layer -->
   <text x="${cx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="${FONT}" font-size="${V_SZ + 6}" font-weight="bold"
-    fill="${pcol}" opacity="0.18" ${tl}>${val}</text>
-  <!-- ${f.label} sharp layer -->
+    font-family="${FONT}" font-size="${V_SZ + 8}" font-weight="bold"
+    fill="${pcol}" opacity="0.6" filter="url(#glow)" ${tl}>${val}</text>
   <text x="${cx}" y="${VALUE_Y}" text-anchor="middle"
     font-family="${FONT}" font-size="${V_SZ}" font-weight="bold"
     fill="#f4f0ea" ${tl}>${val}</text>
-  <!-- ${f.label} label -->
   <text x="${cx}" y="${LABEL_Y}" text-anchor="middle"
     font-family="${FONT}" font-size="${L_SZ}"
-    fill="${pcol}" opacity="0.65" letter-spacing="3">${f.label}</text>`;
+    fill="${pcol}" opacity="0.7" letter-spacing="3">${f.label}</text>`;
   }).join('');
 
   // ── 행성 스트립 ───────────────────────────────────────────
@@ -139,10 +136,10 @@ function buildSVG({ turn, time, loc, date, day }) {
   const planetStrip = `
   <text x="${pCx}" y="${LABEL_Y}" text-anchor="middle"
     font-family="${FONT}" font-size="${L_SZ}"
-    fill="${pcol}" opacity="0.65" letter-spacing="3">PLANET</text>
+    fill="${pcol}" opacity="0.7" letter-spacing="3">PLANET</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="${FONT}" font-size="24" font-weight="bold"
-    fill="${pcol}" opacity="0.25">${pVal}</text>
+    font-family="${FONT}" font-size="30" font-weight="bold"
+    fill="${pcol}" opacity="0.55" filter="url(#glow)">${pVal}</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
     font-family="${FONT}" font-size="24" font-weight="bold"
     fill="${pcol}">${pVal}</text>`;
@@ -155,6 +152,11 @@ function buildSVG({ turn, time, loc, date, day }) {
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
+  </defs>
   <!-- background -->
   <rect width="${W}" height="${H}" fill="#0a0a12"/>
   <!-- circle fills -->
