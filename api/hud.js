@@ -1,11 +1,10 @@
-// HUD — 1080×120 (9:1) — PNG via @resvg/resvg-js (WASM, 폰트 버퍼 직접 주입)
+// HUD — 1080×120 (9:1) — PNG via @resvg/resvg-js
 const fs   = require('fs');
 const path = require('path');
 const { Resvg } = require('@resvg/resvg-js');
 const { setCors } = require('../lib/validate');
 const { dayToPlanet, PLANET_INFO } = require('../lib/constants');
 
-// 서브셋 폰트 버퍼 — 모듈 로드 시 1회만 읽음
 const FONT_BUF = fs.readFileSync(
   path.join(__dirname, '../lib/fonts/cjk-subset.ttf')
 );
@@ -19,7 +18,7 @@ const V_SZ           = 54;
 const L_SZ           = 9;
 const VALUE_Y        = 88;
 const LABEL_Y        = 15;
-const BLUR_STD       = 4;
+const FONT           = "'WenQuanYi Zen Hei',serif";
 
 function e(s) {
   return String(s ?? '')
@@ -27,7 +26,6 @@ function e(s) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// ── 글자 폭 추정 ────────────────────────────────────────────
 function charPx(ch, sz) {
   if (/[가-힯]/.test(ch)) return sz * 0.90;
   if (/[A-Z]/.test(ch))   return sz * 0.68;
@@ -40,7 +38,6 @@ function estimateW(str, sz) {
   return Array.from(String(str || '')).reduce((s, c) => s + charPx(c, sz), 0);
 }
 
-// ── 동적 컬럼 폭 계산 ────────────────────────────────────────
 function calcColumns(fields) {
   const PAD = 28;
   const raw = fields.map(f =>
@@ -59,7 +56,6 @@ function calcColumns(fields) {
   });
 }
 
-// ── SVG 빌드 ─────────────────────────────────────────────────
 function buildSVG({ turn, time, loc, date, day }) {
   const pl     = dayToPlanet(day);
   const planet = PLANET_INFO[pl];
@@ -75,45 +71,39 @@ function buildSVG({ turn, time, loc, date, day }) {
 
   const cols = calcColumns(fields);
 
-  // ── defs ────────────────────────────────────────────────────
-  const defs = `<defs>
-    <clipPath id="hc"><rect width="${W}" height="${H}"/></clipPath>
-    <filter id="blur-v">
-      <feGaussianBlur stdDeviation="${BLUR_STD}"/>
-    </filter>
-    <filter id="blur-p">
-      <feGaussianBlur stdDeviation="${BLUR_STD * 1.4}"/>
-    </filter>
-    <filter id="blur-line">
-      <feGaussianBlur stdDeviation="3"/>
-    </filter>
-  </defs>`;
+  // ── 배경 원 장식 (clipPath 없이, SVG 뷰박스가 자연스럽게 자름) ──
+  const circles = [
+    { cx: -18,      cy: 60,   r: 168, fill: pcol, fo: 0.04 },
+    { cx: W + 18,   cy: 60,   r: 168, fill: pcol, fo: 0.04 },
+    { cx: 540,      cy: 200,  r: 210, fill: pcol, fo: 0.02 },
+  ].map(c => `<circle cx="${c.cx}" cy="${c.cy}" r="${c.r}" fill="${c.fill}" opacity="${c.fo}"/>`)
+  .join('\n  ');
 
-  // ── 배경 원 장식 ──────────────────────────────────────────
-  const circles = `<g clip-path="url(#hc)">
-    <circle cx="-18"       cy="60" r="168" fill="${pcol}" opacity="0.04"/>
-    <circle cx="${W+18}"   cy="60" r="168" fill="${pcol}" opacity="0.04"/>
-    <circle cx="-18"       cy="60" r="168" fill="none" stroke="${pcol}" stroke-width="1"   opacity="0.18"/>
-    <circle cx="-18"       cy="60" r="126" fill="none" stroke="${pcol}" stroke-width="0.6" opacity="0.10"/>
-    <circle cx="285"       cy="-52" r="148" fill="none" stroke="${pcol}" stroke-width="0.7" opacity="0.10"/>
-    <circle cx="540"       cy="192" r="210" fill="none" stroke="${pcol}" stroke-width="0.8" opacity="0.08"/>
-    <circle cx="808"       cy="-58" r="155" fill="none" stroke="${pcol}" stroke-width="0.7" opacity="0.10"/>
-    <circle cx="${W+18}"   cy="60" r="168" fill="none" stroke="${pcol}" stroke-width="1"   opacity="0.18"/>
-    <circle cx="${W+18}"   cy="60" r="126" fill="none" stroke="${pcol}" stroke-width="0.6" opacity="0.10"/>
-  </g>`;
+  const circleStrokes = [
+    { cx: -18,    cy: 60,   r: 168, sw: 1,   op: 0.18 },
+    { cx: -18,    cy: 60,   r: 126, sw: 0.6, op: 0.10 },
+    { cx: 285,    cy: -52,  r: 148, sw: 0.7, op: 0.10 },
+    { cx: 540,    cy: 200,  r: 210, sw: 0.8, op: 0.08 },
+    { cx: 808,    cy: -58,  r: 155, sw: 0.7, op: 0.10 },
+    { cx: W + 18, cy: 60,   r: 168, sw: 1,   op: 0.18 },
+    { cx: W + 18, cy: 60,   r: 126, sw: 0.6, op: 0.10 },
+  ].map(c =>
+    `<circle cx="${c.cx}" cy="${c.cy}" r="${c.r}" fill="none"
+      stroke="${pcol}" stroke-width="${c.sw}" opacity="${c.op}"/>`
+  ).join('\n  ');
 
   // ── 구분선 ────────────────────────────────────────────────
   let bx = 0;
   const dividers = cols.slice(0, -1).map(({ w }) => {
     bx += w;
-    return `<line x1="${bx}" y1="16" x2="${bx}" y2="${H-16}"
+    return `<line x1="${bx}" y1="16" x2="${bx}" y2="${H - 16}"
       stroke="${pcol}" stroke-width="0.6" opacity="0.28"/>`;
-  }).join('\n');
+  }).join('\n  ');
 
-  const planetDiv = `<line x1="${CONTENT_W}" y1="12" x2="${CONTENT_W}" y2="${H-12}"
+  const planetDiv = `<line x1="${CONTENT_W}" y1="12" x2="${CONTENT_W}" y2="${H - 12}"
     stroke="${pcol}" stroke-width="0.8" opacity="0.35"/>`;
 
-  // ── 컬럼 텍스트 ───────────────────────────────────────────
+  // ── 컬럼 텍스트 (필터 없음 — resvg 호환 2레이어 글로우) ────
   const cells = fields.map((f, i) => {
     const { cx, maxTextW } = cols[i];
     const val   = e(f.value);
@@ -121,51 +111,61 @@ function buildSVG({ turn, time, loc, date, day }) {
     const tl    = estPx > maxTextW
       ? `textLength="${Math.round(maxTextW)}" lengthAdjust="spacingAndGlyphs"`
       : '';
-    const base  = `x="${cx}" y="${VALUE_Y}" text-anchor="middle"
-      font-family="WenQuanYi Zen Hei,serif" font-size="${V_SZ}" font-weight="bold" ${tl}`;
 
     return `
-  <text ${base} fill="${pcol}" opacity="0.35" filter="url(#blur-v)">${val}</text>
-  <text ${base} fill="#f4f0ea">${val}</text>
+  <!-- ${f.label} glow layer -->
+  <text x="${cx}" y="${VALUE_Y}" text-anchor="middle"
+    font-family="${FONT}" font-size="${V_SZ + 6}" font-weight="bold"
+    fill="${pcol}" opacity="0.18" ${tl}>${val}</text>
+  <!-- ${f.label} sharp layer -->
+  <text x="${cx}" y="${VALUE_Y}" text-anchor="middle"
+    font-family="${FONT}" font-size="${V_SZ}" font-weight="bold"
+    fill="#f4f0ea" ${tl}>${val}</text>
+  <!-- ${f.label} label -->
   <text x="${cx}" y="${LABEL_Y}" text-anchor="middle"
-    font-family="WenQuanYi Zen Hei,sans-serif" font-size="${L_SZ}"
+    font-family="${FONT}" font-size="${L_SZ}"
     fill="${pcol}" opacity="0.65" letter-spacing="3">${f.label}</text>`;
   }).join('');
 
   // ── 행성 스트립 ───────────────────────────────────────────
-  const pCx = CONTENT_W + PLANET_STRIP_W / 2;
+  const pCx  = CONTENT_W + PLANET_STRIP_W / 2;
   const pVal = e(planet.name);
   const planetStrip = `
   <text x="${pCx}" y="${LABEL_Y}" text-anchor="middle"
-    font-family="WenQuanYi Zen Hei,sans-serif" font-size="${L_SZ}"
+    font-family="${FONT}" font-size="${L_SZ}"
     fill="${pcol}" opacity="0.65" letter-spacing="3">PLANET</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="WenQuanYi Zen Hei,serif" font-size="24" font-weight="bold"
-    fill="${pcol}" opacity="0.45" filter="url(#blur-p)">${pVal}</text>
+    font-family="${FONT}" font-size="24" font-weight="bold"
+    fill="${pcol}" opacity="0.25">${pVal}</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="WenQuanYi Zen Hei,serif" font-size="24" font-weight="bold"
+    font-family="${FONT}" font-size="24" font-weight="bold"
     fill="${pcol}">${pVal}</text>`;
 
-  // ── 상하 강조선 ───────────────────────────────────────────
+  // ── 상하 강조선 (필터 없이 2레이어) ─────────────────────────
   const accent = `
-  <rect x="0" y="0" width="${W}" height="2"   fill="${pcol}" opacity="0.5" filter="url(#blur-line)"/>
+  <rect x="0" y="0" width="${W}" height="4" fill="${pcol}" opacity="0.3"/>
   <rect x="0" y="0" width="${W}" height="2.5" fill="${pcol}"/>
-  <rect x="0" y="${H-1.5}" width="${W}" height="1.5" fill="${pcol}" opacity="0.28"/>`;
+  <rect x="0" y="${H - 1.5}" width="${W}" height="1.5" fill="${pcol}" opacity="0.28"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  ${defs}
+  <!-- background -->
   <rect width="${W}" height="${H}" fill="#0a0a12"/>
+  <!-- circle fills -->
   ${circles}
+  <!-- circle strokes -->
+  ${circleStrokes}
+  <!-- accent lines -->
   ${accent}
+  <!-- column dividers -->
   ${dividers}
   ${planetDiv}
+  <!-- text -->
   ${cells}
   ${planetStrip}
 </svg>`;
 }
 
-// ── 핸들러 ────────────────────────────────────────────────────
 module.exports = async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -188,7 +188,6 @@ module.exports = async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).send(Buffer.from(png));
   } catch (err) {
-    // 폴백: SVG 그대로 반환
     const svg = buildSVG({ turn, time, loc, date, day });
     res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'no-store');
