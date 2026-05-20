@@ -1,13 +1,9 @@
 // HUD — 1080×120 (9:1) — PNG via @resvg/resvg-js
-const fs   = require('fs');
-const path = require('path');
 const { Resvg } = require('@resvg/resvg-js');
 const { setCors } = require('../lib/validate');
 const { dayToPlanet, PLANET_INFO } = require('../lib/constants');
 
-const FONT_BUF = fs.readFileSync(
-  path.join(__dirname, '../lib/fonts/cjk-subset.ttf')
-);
+const FONT_BUF = require('../lib/fonts/font-data');
 
 const W              = 1080;
 const H              = 120;
