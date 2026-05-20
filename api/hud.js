@@ -6,7 +6,13 @@ const { dayToPlanet, PLANET_INFO } = require('../lib/constants');
 const fs = require('fs');
 const FONT_BUF  = require('../lib/fonts/font-data');
 const FONT_PATH = '/tmp/hud-font.ttf';
-fs.writeFileSync(FONT_PATH, FONT_BUF);
+let fontReady = false;
+function ensureFont() {
+  if (!fontReady) {
+    fs.writeFileSync(FONT_PATH, FONT_BUF);
+    fontReady = true;
+  }
+}
 
 const W              = 1080;
 const H              = 120;
@@ -172,6 +178,7 @@ module.exports = async (req, res) => {
   const { turn, time, loc, date, day } = req.query;
 
   try {
+    ensureFont();
     const svg = buildSVG({ turn, time, loc, date, day });
     const resvg = new Resvg(svg, {
       font: { fontFiles: [FONT_PATH], loadSystemFonts: false },
@@ -183,7 +190,13 @@ module.exports = async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).send(Buffer.from(png));
   } catch (err) {
-    const svg = buildSVG({ turn, time, loc, date, day });
+    const errMsg = String(err?.message || err);
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <rect width="${W}" height="${H}" fill="#1a0a0a"/>
+  <rect x="0" y="0" width="${W}" height="3" fill="#d47474"/>
+  <text x="20" y="75" font-family="monospace" font-size="14" fill="#d47474">${e(errMsg)}</text>
+</svg>`;
     res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).send(svg);
