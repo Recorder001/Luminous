@@ -4,6 +4,7 @@ const { setCors } = require('../lib/validate');
 const { dayToPlanet, PLANET_INFO } = require('../lib/constants');
 
 const FONT_BUF = require('../lib/fonts/font-data');
+const FONT_B64 = FONT_BUF.toString('base64');
 
 const W              = 1080;
 const H              = 120;
@@ -14,7 +15,8 @@ const V_SZ           = 54;
 const L_SZ           = 9;
 const VALUE_Y        = 88;
 const LABEL_Y        = 15;
-const FONT           = "'WenQuanYi Zen Hei',serif";
+const FONT           = "'HF',serif";
+const FONT_FACE      = `@font-face{font-family:'HF';src:url('data:font/truetype;base64,${FONT_B64}')format('truetype');}`;
 
 function e(s) {
   return String(s ?? '')
@@ -145,6 +147,7 @@ function buildSVG({ turn, time, loc, date, day }) {
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs><style>${FONT_FACE}</style></defs>
   <!-- background -->
   <rect width="${W}" height="${H}" fill="#0a0a12"/>
   <!-- circle fills -->
@@ -171,11 +174,7 @@ module.exports = async (req, res) => {
   try {
     const svg = buildSVG({ turn, time, loc, date, day });
     const resvg = new Resvg(svg, {
-      font: {
-        fontBuffers: [FONT_BUF],
-        defaultFontFamily: 'WenQuanYi Zen Hei',
-        loadSystemFonts: false,
-      },
+      font: { loadSystemFonts: false },
       fitTo: { mode: 'width', value: W },
     });
     const png = resvg.render().asPng();
