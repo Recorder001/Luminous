@@ -195,22 +195,33 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
 
   const cols = calcColumns(fields);
 
-  // ── 배경 원 (stroke only, 블러 그룹) ─────────────────────────
-  const circleData = [
-    { cx: -22,    cy: 48,  r: 78,  sw: 1.6, op: 0.32 },
-    { cx: 42,     cy: 98,  r: 118, sw: 1.0, op: 0.20 },
-    { cx: -58,    cy: 12,  r: 148, sw: 0.7, op: 0.14 },
-    { cx: 68,     cy: -20, r: 66,  sw: 1.3, op: 0.26 },
-    { cx: 16,     cy: 25,  r: 40,  sw: 0.8, op: 0.18 },
-    { cx: W+22,   cy: 48,  r: 78,  sw: 1.6, op: 0.32 },
-    { cx: W-42,   cy: 98,  r: 118, sw: 1.0, op: 0.20 },
-    { cx: W+58,   cy: 12,  r: 148, sw: 0.7, op: 0.14 },
-    { cx: W-68,   cy: -20, r: 66,  sw: 1.3, op: 0.26 },
-    { cx: W-16,   cy: 25,  r: 40,  sw: 0.8, op: 0.18 },
-  ];
-  const circleStrokes = circleData.map(c =>
-    `<circle cx="${c.cx}" cy="${c.cy}" r="${c.r}" fill="none" stroke="${pcol}" stroke-width="${c.sw}" opacity="${c.op}"/>`
-  ).join('\n    ');
+  // ── 배경 원 4개 (랜덤, 프레임 가장자리에서 일부만 노출) ───────
+  // resvg: filter가 걸린 그룹은 중심이 viewBox 내에 있어야 panic 없음.
+  // 전략: 중심은 (0~W, 0~H) 안에 두고 반지름으로 프레임 밖으로 삐져나오게 함.
+  const circleStrokes = Array.from({ length: 4 }, () => {
+    const edge = Math.floor(Math.random() * 4);        // 0좌 1우 2상 3하
+    let cx, cy, r;
+    if (edge === 0) {           // 왼쪽 가장자리
+      cx = Math.random() * W * 0.08;
+      cy = Math.random() * H;
+      r  = cx + 30 + Math.random() * 60;              // 중심보다 크게 → 왼쪽 잘림
+    } else if (edge === 1) {    // 오른쪽 가장자리
+      cx = W - Math.random() * W * 0.08;
+      cy = Math.random() * H;
+      r  = (W - cx) + 30 + Math.random() * 60;
+    } else if (edge === 2) {    // 위쪽 가장자리
+      cx = Math.random() * W;
+      cy = Math.random() * H * 0.3;
+      r  = cy + 30 + Math.random() * 50;
+    } else {                    // 아래쪽 가장자리
+      cx = Math.random() * W;
+      cy = H - Math.random() * H * 0.3;
+      r  = (H - cy) + 30 + Math.random() * 50;
+    }
+    const sw = (0.7 + Math.random() * 1.1).toFixed(1);
+    const op = (0.18 + Math.random() * 0.22).toFixed(2);
+    return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="${pcol}" stroke-width="${sw}" opacity="${op}"/>`;
+  }).join('\n    ');
 
   // ── 구분선 ───────────────────────────────────────────────────
   let bx = 0;
@@ -272,8 +283,8 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
   <!-- L/R 엣지 앰비언트 글로우 (고정) -->
   <rect x="-10" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.13" filter="url(#edgeglow)"/>
   <rect x="${W - 210}" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.13" filter="url(#edgeglow)"/>
-  <!-- 배경 원 (stroke only, 블러) -->
-  <g filter="url(#cbglow)">
+  <!-- 배경 원 (stroke only, 필터 없음 — 가장자리 걸친 원에 blur 적용시 resvg panic) -->
+  <g>
     ${circleStrokes}
   </g>
   <!-- 상하 강조선 -->
