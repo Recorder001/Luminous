@@ -79,11 +79,11 @@ function drawClock(cx, cy, col) {
   <line x1="${cx}" y1="${cy}" x2="${cx}"   y2="${cy-7}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
 }
 
-// ── 위치 마커 (LOCATION) — 원 + 수렴하는 두 선 ──────────────
+// ── 위치 마커 (LOCATION) — 물방울 path + 내부 점 ────────────
 function drawPin(cx, cy, col) {
-  return `<circle cx="${cx}" cy="${cy-4}" r="6" fill="none" stroke="${col}" stroke-width="1.5"/>
-  <line x1="${cx-3}" y1="${cy+1}" x2="${cx}" y2="${cy+9}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="${cx+3}" y1="${cy+1}" x2="${cx}" y2="${cy+9}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
+  return `<path d="M ${cx-7},${cy-3} A 7 7 0 1 1 ${cx+7},${cy-3} L ${cx},${cy+10} Z"
+    fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="${cx}" cy="${cy-4}" r="2.5" fill="${col}" opacity="0.7"/>`;
 }
 
 // ── 달력 (DATE) — 사각형 + 헤더선 + 클립 2개 ───────────────
@@ -94,11 +94,11 @@ function drawCalendar(cx, cy, col) {
   <line x1="${cx+3}" y1="${cy-9}" x2="${cx+3}" y2="${cy-4}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
 }
 
-// ── 열차 (DAY) — 사각형 차체 + 바퀴 2개 ────────────────────
-function drawTrain(cx, cy, col) {
-  return `<rect x="${cx-12}" y="${cy-5}" width="24" height="9" rx="3" fill="none" stroke="${col}" stroke-width="1.5"/>
-  <circle cx="${cx-6}" cy="${cy+8}" r="3.5" fill="none" stroke="${col}" stroke-width="1.5"/>
-  <circle cx="${cx+6}" cy="${cy+8}" r="3.5" fill="none" stroke="${col}" stroke-width="1.5"/>`;
+// ── 깃발 (DAY) — 폴대 + 삼각 기 ────────────────────────────
+function drawFlag(cx, cy, col) {
+  return `<line x1="${cx-4}" y1="${cy-11}" x2="${cx-4}" y2="${cy+10}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M ${cx-4},${cy-11} L ${cx+9},${cy-5} L ${cx-4},${cy+1} Z"
+    fill="${col}" opacity="0.5" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/>`;
 }
 
 // ── 토성 (PLANET 레이블) — 원 + 링 ─────────────────────────
@@ -113,7 +113,7 @@ function drawIcon(name, cx, cy, col) {
     case 'clock':     return drawClock(cx, cy, col);
     case 'pin':       return drawPin(cx, cy, col);
     case 'calendar':  return drawCalendar(cx, cy, col);
-    case 'train':     return drawTrain(cx, cy, col);
+    case 'flag':      return drawFlag(cx, cy, col);
     default: return '';
   }
 }
@@ -188,7 +188,7 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
     { value: timeVal,              icon: 'clock'     },
     { value: String(loc  || '—'), icon: 'pin'        },
     { value: String(date || '—'), icon: 'calendar'   },
-    { value: dayVal,               icon: 'train'     },
+    { value: dayVal,               icon: 'flag'      },
   ];
 
   const cols = calcColumns(fields);
