@@ -195,31 +195,31 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
 
   const cols = calcColumns(fields);
 
-  // ── 배경 원 4개 (랜덤, 프레임 가장자리에서 일부만 노출) ───────
+  // ── 배경 원 6개 (랜덤, 프레임 가장자리에서 일부만 노출) ───────
   // resvg: filter가 걸린 그룹은 중심이 viewBox 내에 있어야 panic 없음.
   // 전략: 중심은 (0~W, 0~H) 안에 두고 반지름으로 프레임 밖으로 삐져나오게 함.
-  const circleStrokes = Array.from({ length: 4 }, () => {
+  const circleStrokes = Array.from({ length: 6 }, () => {
     const edge = Math.floor(Math.random() * 4);        // 0좌 1우 2상 3하
     let cx, cy, r;
     if (edge === 0) {           // 왼쪽 가장자리
-      cx = Math.random() * W * 0.08;
+      cx = Math.random() * W * 0.06;
       cy = Math.random() * H;
-      r  = cx + 30 + Math.random() * 60;              // 중심보다 크게 → 왼쪽 잘림
+      r  = cx + 80 + Math.random() * 120;
     } else if (edge === 1) {    // 오른쪽 가장자리
-      cx = W - Math.random() * W * 0.08;
+      cx = W - Math.random() * W * 0.06;
       cy = Math.random() * H;
-      r  = (W - cx) + 30 + Math.random() * 60;
+      r  = (W - cx) + 80 + Math.random() * 120;
     } else if (edge === 2) {    // 위쪽 가장자리
       cx = Math.random() * W;
-      cy = Math.random() * H * 0.3;
-      r  = cy + 30 + Math.random() * 50;
+      cy = Math.random() * H * 0.25;
+      r  = cy + 80 + Math.random() * 100;
     } else {                    // 아래쪽 가장자리
       cx = Math.random() * W;
-      cy = H - Math.random() * H * 0.3;
-      r  = (H - cy) + 30 + Math.random() * 50;
+      cy = H - Math.random() * H * 0.25;
+      r  = (H - cy) + 80 + Math.random() * 100;
     }
     const sw = (0.7 + Math.random() * 1.1).toFixed(1);
-    const op = (0.18 + Math.random() * 0.22).toFixed(2);
+    const op = (0.15 + Math.random() * 0.20).toFixed(2);
     return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="${pcol}" stroke-width="${sw}" opacity="${op}"/>`;
   }).join('\n    ');
 
