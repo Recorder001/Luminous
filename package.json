@@ -6,6 +6,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@fontsource/nanum-myeongjo": "^5.2.11",
     "@supabase/supabase-js": "^2.39.0",
     "sharp": "^0.33.0"
   }

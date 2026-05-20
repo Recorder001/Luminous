@@ -1,7 +1,18 @@
 // HUD — 1080×120 (9:1) — PNG output via Sharp
+const fs    = require('fs');
+const path  = require('path');
 const sharp = require('sharp');
 const { setCors } = require('../lib/validate');
 const { dayToPlanet, PLANET_INFO } = require('../lib/constants');
+
+// 서브셋 폰트 base64 (한글+라틴) — 모듈 로드 시 1회만 읽음
+const FONT_B64 = fs.readFileSync(
+  path.join(__dirname, '../lib/fonts/cjk-subset.ttf')
+).toString('base64');
+const FONT_FACE = `@font-face {
+  font-family: 'HudFont';
+  src: url('data:font/truetype;base64,${FONT_B64}') format('truetype');
+}`;
 
 const W              = 1080;
 const H              = 120;
@@ -72,8 +83,9 @@ function buildSVG({ turn, time, loc, date, day }) {
 
   const cols = calcColumns(fields);
 
-  // ── defs: blur 전용 필터 (feMerge 없음) ──────────────────
+  // ── defs: 폰트 + blur 전용 필터 (feMerge 없음) ───────────
   const defs = `<defs>
+    <style>${FONT_FACE}</style>
     <clipPath id="hc"><rect width="${W}" height="${H}"/></clipPath>
     <filter id="blur-v">
       <feGaussianBlur stdDeviation="${BLUR_STD}"/>
@@ -119,7 +131,7 @@ function buildSVG({ turn, time, loc, date, day }) {
       ? `textLength="${Math.round(maxTextW)}" lengthAdjust="spacingAndGlyphs"`
       : '';
     const txtAttrs = `x="${cx}" y="${VALUE_Y}" text-anchor="middle"
-      font-family="serif" font-size="${V_SZ}" font-weight="bold" ${tl}`;
+      font-family="HudFont,serif" font-size="${V_SZ}" font-weight="bold" ${tl}`;
 
     return `
   <text ${txtAttrs} fill="${pcol}" opacity="0.35" filter="url(#blur-v)">${val}</text>
@@ -137,10 +149,10 @@ function buildSVG({ turn, time, loc, date, day }) {
     font-family="sans-serif" font-size="${L_SZ}"
     fill="${pcol}" opacity="0.65" letter-spacing="3">PLANET</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="serif" font-size="24" font-weight="bold"
+    font-family="HudFont,serif" font-size="24" font-weight="bold"
     fill="${pcol}" opacity="0.45" filter="url(#blur-p)">${pVal}</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="serif" font-size="24" font-weight="bold"
+    font-family="HudFont,serif" font-size="24" font-weight="bold"
     fill="${pcol}">${pVal}</text>`;
 
   // ── 상하 강조선 ───────────────────────────────────────────
