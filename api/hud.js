@@ -1,29 +1,24 @@
-// HUD — 1080×120 (9:1) — PNG output via Sharp
-const fs    = require('fs');
-const path  = require('path');
-const sharp = require('sharp');
+// HUD — 1080×120 (9:1) — PNG via @resvg/resvg-js (WASM, 폰트 버퍼 직접 주입)
+const fs   = require('fs');
+const path = require('path');
+const { Resvg } = require('@resvg/resvg-js');
 const { setCors } = require('../lib/validate');
 const { dayToPlanet, PLANET_INFO } = require('../lib/constants');
 
-// 서브셋 폰트 base64 (한글+라틴) — 모듈 로드 시 1회만 읽음
-const FONT_B64 = fs.readFileSync(
+// 서브셋 폰트 버퍼 — 모듈 로드 시 1회만 읽음
+const FONT_BUF = fs.readFileSync(
   path.join(__dirname, '../lib/fonts/cjk-subset.ttf')
-).toString('base64');
-const FONT_FACE = `@font-face {
-  font-family: 'HudFont';
-  src: url('data:font/truetype;base64,${FONT_B64}') format('truetype');
-}`;
+);
 
 const W              = 1080;
 const H              = 120;
 const PLANET_STRIP_W = 108;
 const CONTENT_W      = W - PLANET_STRIP_W;
 const MIN_COL_W      = 90;
-const V_SZ           = 54;   // 값 폰트 크기
-const L_SZ           = 9;    // 레이블 폰트 크기
+const V_SZ           = 54;
+const L_SZ           = 9;
 const VALUE_Y        = 88;
 const LABEL_Y        = 15;
-// feMerge 없이 glow: blur 전용 필터 + 동일 텍스트 두 번 렌더
 const BLUR_STD       = 4;
 
 function e(s) {
@@ -54,10 +49,7 @@ function calcColumns(fields) {
   const total = raw.reduce((a, b) => a + b, 0);
   const scale = CONTENT_W / total;
   const widths = raw.map(w => Math.round(w * scale));
-
-  // 반올림 오차 보정
-  const diff = CONTENT_W - widths.reduce((a, b) => a + b, 0);
-  widths[widths.length - 1] += diff;
+  widths[widths.length - 1] += CONTENT_W - widths.reduce((a, b) => a + b, 0);
 
   let cx = 0;
   return widths.map(w => {
@@ -83,9 +75,8 @@ function buildSVG({ turn, time, loc, date, day }) {
 
   const cols = calcColumns(fields);
 
-  // ── defs: 폰트 + blur 전용 필터 (feMerge 없음) ───────────
+  // ── defs ────────────────────────────────────────────────────
   const defs = `<defs>
-    <style>${FONT_FACE}</style>
     <clipPath id="hc"><rect width="${W}" height="${H}"/></clipPath>
     <filter id="blur-v">
       <feGaussianBlur stdDeviation="${BLUR_STD}"/>
@@ -100,66 +91,66 @@ function buildSVG({ turn, time, loc, date, day }) {
 
   // ── 배경 원 장식 ──────────────────────────────────────────
   const circles = `<g clip-path="url(#hc)">
-    <circle cx="-18"        cy="60" r="168" fill="${pcol}" opacity="0.04"/>
-    <circle cx="${W + 18}"  cy="60" r="168" fill="${pcol}" opacity="0.04"/>
-    <circle cx="-18"        cy="60" r="168" fill="none" stroke="${pcol}" stroke-width="1"   opacity="0.18"/>
-    <circle cx="-18"        cy="60" r="126" fill="none" stroke="${pcol}" stroke-width="0.6" opacity="0.10"/>
-    <circle cx="285"        cy="-52" r="148" fill="none" stroke="${pcol}" stroke-width="0.7" opacity="0.10"/>
-    <circle cx="540"        cy="192" r="210" fill="none" stroke="${pcol}" stroke-width="0.8" opacity="0.08"/>
-    <circle cx="808"        cy="-58" r="155" fill="none" stroke="${pcol}" stroke-width="0.7" opacity="0.10"/>
-    <circle cx="${W + 18}"  cy="60"  r="168" fill="none" stroke="${pcol}" stroke-width="1"   opacity="0.18"/>
-    <circle cx="${W + 18}"  cy="60"  r="126" fill="none" stroke="${pcol}" stroke-width="0.6" opacity="0.10"/>
+    <circle cx="-18"       cy="60" r="168" fill="${pcol}" opacity="0.04"/>
+    <circle cx="${W+18}"   cy="60" r="168" fill="${pcol}" opacity="0.04"/>
+    <circle cx="-18"       cy="60" r="168" fill="none" stroke="${pcol}" stroke-width="1"   opacity="0.18"/>
+    <circle cx="-18"       cy="60" r="126" fill="none" stroke="${pcol}" stroke-width="0.6" opacity="0.10"/>
+    <circle cx="285"       cy="-52" r="148" fill="none" stroke="${pcol}" stroke-width="0.7" opacity="0.10"/>
+    <circle cx="540"       cy="192" r="210" fill="none" stroke="${pcol}" stroke-width="0.8" opacity="0.08"/>
+    <circle cx="808"       cy="-58" r="155" fill="none" stroke="${pcol}" stroke-width="0.7" opacity="0.10"/>
+    <circle cx="${W+18}"   cy="60" r="168" fill="none" stroke="${pcol}" stroke-width="1"   opacity="0.18"/>
+    <circle cx="${W+18}"   cy="60" r="126" fill="none" stroke="${pcol}" stroke-width="0.6" opacity="0.10"/>
   </g>`;
 
   // ── 구분선 ────────────────────────────────────────────────
   let bx = 0;
   const dividers = cols.slice(0, -1).map(({ w }) => {
     bx += w;
-    return `<line x1="${bx}" y1="16" x2="${bx}" y2="${H - 16}"
+    return `<line x1="${bx}" y1="16" x2="${bx}" y2="${H-16}"
       stroke="${pcol}" stroke-width="0.6" opacity="0.28"/>`;
   }).join('\n');
 
-  const planetDiv = `<line x1="${CONTENT_W}" y1="12" x2="${CONTENT_W}" y2="${H - 12}"
+  const planetDiv = `<line x1="${CONTENT_W}" y1="12" x2="${CONTENT_W}" y2="${H-12}"
     stroke="${pcol}" stroke-width="0.8" opacity="0.35"/>`;
 
-  // ── 컬럼 텍스트 (glow = blur 레이어 + 선명 레이어) ────────
+  // ── 컬럼 텍스트 ───────────────────────────────────────────
   const cells = fields.map((f, i) => {
     const { cx, maxTextW } = cols[i];
-    const val  = e(f.value);
+    const val   = e(f.value);
     const estPx = estimateW(f.value, V_SZ);
-    const tl   = estPx > maxTextW
+    const tl    = estPx > maxTextW
       ? `textLength="${Math.round(maxTextW)}" lengthAdjust="spacingAndGlyphs"`
       : '';
-    const txtAttrs = `x="${cx}" y="${VALUE_Y}" text-anchor="middle"
-      font-family="HudFont,serif" font-size="${V_SZ}" font-weight="bold" ${tl}`;
+    const base  = `x="${cx}" y="${VALUE_Y}" text-anchor="middle"
+      font-family="WenQuanYi Zen Hei,serif" font-size="${V_SZ}" font-weight="bold" ${tl}`;
 
     return `
-  <text ${txtAttrs} fill="${pcol}" opacity="0.35" filter="url(#blur-v)">${val}</text>
-  <text ${txtAttrs} fill="#f4f0ea">${val}</text>
+  <text ${base} fill="${pcol}" opacity="0.35" filter="url(#blur-v)">${val}</text>
+  <text ${base} fill="#f4f0ea">${val}</text>
   <text x="${cx}" y="${LABEL_Y}" text-anchor="middle"
-    font-family="sans-serif" font-size="${L_SZ}"
+    font-family="WenQuanYi Zen Hei,sans-serif" font-size="${L_SZ}"
     fill="${pcol}" opacity="0.65" letter-spacing="3">${f.label}</text>`;
   }).join('');
 
   // ── 행성 스트립 ───────────────────────────────────────────
-  const pCx  = CONTENT_W + PLANET_STRIP_W / 2;
+  const pCx = CONTENT_W + PLANET_STRIP_W / 2;
   const pVal = e(planet.name);
   const planetStrip = `
-  <text x="${pCx}" y="${VALUE_Y - 18}" text-anchor="middle"
-    font-family="sans-serif" font-size="${L_SZ}"
+  <text x="${pCx}" y="${LABEL_Y}" text-anchor="middle"
+    font-family="WenQuanYi Zen Hei,sans-serif" font-size="${L_SZ}"
     fill="${pcol}" opacity="0.65" letter-spacing="3">PLANET</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="HudFont,serif" font-size="24" font-weight="bold"
+    font-family="WenQuanYi Zen Hei,serif" font-size="24" font-weight="bold"
     fill="${pcol}" opacity="0.45" filter="url(#blur-p)">${pVal}</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="HudFont,serif" font-size="24" font-weight="bold"
+    font-family="WenQuanYi Zen Hei,serif" font-size="24" font-weight="bold"
     fill="${pcol}">${pVal}</text>`;
 
   // ── 상하 강조선 ───────────────────────────────────────────
   const accent = `
-  <rect x="0" y="0" width="${W}" height="2" fill="${pcol}" opacity="0.5" filter="url(#blur-line)"/>
+  <rect x="0" y="0" width="${W}" height="2"   fill="${pcol}" opacity="0.5" filter="url(#blur-line)"/>
   <rect x="0" y="0" width="${W}" height="2.5" fill="${pcol}"/>
-  <rect x="0" y="${H - 1.5}" width="${W}" height="1.5" fill="${pcol}" opacity="0.28"/>`;
+  <rect x="0" y="${H-1.5}" width="${W}" height="1.5" fill="${pcol}" opacity="0.28"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
@@ -183,16 +174,21 @@ module.exports = async (req, res) => {
 
   try {
     const svg = buildSVG({ turn, time, loc, date, day });
-    const png = await sharp(Buffer.from(svg), { density: 150 })
-      .resize(W, H)
-      .png()
-      .toBuffer();
+    const resvg = new Resvg(svg, {
+      font: {
+        fontBuffers: [FONT_BUF],
+        defaultFontFamily: 'WenQuanYi Zen Hei',
+        loadSystemFonts: false,
+      },
+      fitTo: { mode: 'width', value: W },
+    });
+    const png = resvg.render().asPng();
 
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).send(png);
+    return res.status(200).send(Buffer.from(png));
   } catch (err) {
-    // SVG 폴백
+    // 폴백: SVG 그대로 반환
     const svg = buildSVG({ turn, time, loc, date, day });
     res.setHeader('Content-Type', 'image/svg+xml');
     res.setHeader('Cache-Control', 'no-store');
