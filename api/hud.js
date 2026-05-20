@@ -102,13 +102,13 @@ function buildHUD({ turn, time, loc, date, day }) {
   }).join('');
 
   // ── 우측 행성 스트립 ────────────────────────────────────────
-  const planet = `
+  const planetStrip = `
     <text x="1030" y="${LABEL_Y}" text-anchor="middle"
       font-family="${FONT}" font-size="9" fill="${pcol}" opacity="0.65"
       letter-spacing="3">PLANET</text>
     <text x="1030" y="${VALUE_Y}" text-anchor="middle"
       font-family="${FONT}" font-size="26" font-weight="bold"
-      fill="${pcol}" filter="url(#glow-m)">${e(PLANET_INFO[pl].name)}</text>`;
+      fill="${pcol}" filter="url(#glow-m)">${e(planet.name)}</text>`;
 
   // ── 상하 강조선 ─────────────────────────────────────────────
   const lines = `
@@ -123,7 +123,7 @@ function buildHUD({ turn, time, loc, date, day }) {
   ${lines}
   ${dividers}
   ${cells}
-  ${planet}
+  ${planetStrip}
 </svg>`;
 }
 
