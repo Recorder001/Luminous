@@ -70,7 +70,7 @@ function buildMap({ day, loc }) {
         fill="none" stroke="${pcol}" stroke-width="1" opacity="0.5"/>` : ''}
       <text x="${pos.x}" y="${pos.y + labelOffset}"
         text-anchor="${labelAnchor}"
-        font-family="'Courier New',monospace" font-size="${textSize}"
+        font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="${textSize}"
         font-weight="${textWeight}" fill="${textFill}">${e(name)}</text>
     `;
   }).join('');
@@ -82,24 +82,24 @@ function buildMap({ day, loc }) {
     <circle cx="${W / 2}" cy="${H / 2}" r="25"
       fill="${pcol}18" stroke="${pcol}55" stroke-width="1"/>
     <text x="${W / 2}" y="${H / 2 - 6}" text-anchor="middle"
-      font-family="'Courier New',monospace" font-size="10"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="10"
       fill="${pcol}aa" letter-spacing="2">PLANET</text>
     <text x="${W / 2}" y="${H / 2 + 10}" text-anchor="middle"
-      font-family="'Courier New',monospace" font-size="14" font-weight="bold"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="14" font-weight="bold"
       fill="${pcol}">${e(planet.name)}</text>
   `;
 
   // 헤더
   const header = `
-    <text x="30" y="42" font-family="'Courier New',monospace" font-size="11"
+    <text x="30" y="42" font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="11"
       fill="${pcol}88" letter-spacing="3">NAVIGATION MAP</text>
-    <text x="30" y="64" font-family="'Courier New',monospace" font-size="20"
+    <text x="30" y="64" font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="20"
       font-weight="bold" fill="#f0ece4">${e(loc || activeLoc)}</text>
     <text x="${W - 30}" y="42" text-anchor="end"
-      font-family="'Courier New',monospace" font-size="11"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="11"
       fill="${pcol}88" letter-spacing="2">DAY ${parseInt(day) || '—'}</text>
     <text x="${W - 30}" y="64" text-anchor="end"
-      font-family="'Courier New',monospace" font-size="14"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="14"
       fill="${pcol}">${dayInPlanet} / 5</text>
   `;
 

@@ -1,15 +1,16 @@
 // HUD — 1080×120 (9:1) — PNG via @resvg/resvg-js
+const fs   = require('fs');
+const path = require('path');
 const { Resvg } = require('@resvg/resvg-js');
 const { setCors } = require('../lib/validate');
 const { dayToPlanet, PLANET_INFO } = require('../lib/constants');
 
-const fs = require('fs');
-const FONT_BUF  = require('../lib/fonts/font-data');
-const FONT_PATH = '/tmp/hud-font.ttf';
+const FONT_SRC  = path.join(__dirname, '../lib/fonts/nanum-subset.ttf');
+const FONT_PATH = '/tmp/nm-hud.ttf';
 let fontReady = false;
 function ensureFont() {
   if (!fontReady) {
-    fs.writeFileSync(FONT_PATH, FONT_BUF);
+    fs.writeFileSync(FONT_PATH, fs.readFileSync(FONT_SRC));
     fontReady = true;
   }
 }
@@ -23,7 +24,7 @@ const V_SZ           = 54;
 const L_SZ           = 9;
 const VALUE_Y        = 88;
 const LABEL_Y        = 15;
-const FONT           = "'WenQuanYi Zen Hei',serif";
+const FONT           = "'NanumMyeongjo',serif";
 
 function e(s) {
   return String(s ?? '')

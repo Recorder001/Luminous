@@ -28,17 +28,17 @@ function buildSVG({ code, savedAt, dayCurr, dayPrev, dayDelta, plCurr, plPrev, c
   const header = `
     <rect x="0" y="0" width="${W}" height="110" fill="${pcol}18"/>
     <rect x="0" y="0" width="${W}" height="4" fill="${pcol}"/>
-    <text x="36" y="46" font-family="'Courier New',monospace"
+    <text x="36" y="46" font-family="'Courier New','Nanum Myeongjo','Batang',monospace"
       font-size="22" font-weight="bold" fill="#f0ece4">JOURNEY SAVED</text>
-    <text x="36" y="68" font-family="'Courier New',monospace"
+    <text x="36" y="68" font-family="'Courier New','Nanum Myeongjo','Batang',monospace"
       font-size="11" fill="${pcol}88" letter-spacing="2">
       ${e(dateStr)} UTC
     </text>
     <text x="${W - 36}" y="46" text-anchor="end"
-      font-family="'Courier New',monospace" font-size="12"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="12"
       fill="${pcol}88">${e(code)}</text>
     <text x="${W - 36}" y="68" text-anchor="end"
-      font-family="'Courier New',monospace" font-size="22"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="22"
       font-weight="bold" fill="${pcol}">${e(planet.name)}</text>
     <line x1="36" y1="94" x2="${W - 36}" y2="94"
       stroke="${pcol}44" stroke-width="1"/>
@@ -52,19 +52,19 @@ function buildSVG({ code, savedAt, dayCurr, dayPrev, dayDelta, plCurr, plPrev, c
     : planet.name;
 
   const dayRow = `
-    <text x="36" y="138" font-family="'Courier New',monospace"
+    <text x="36" y="138" font-family="'Courier New','Nanum Myeongjo','Batang',monospace"
       font-size="11" fill="#ffffff44" letter-spacing="2">PROGRESS</text>
-    <text x="36" y="162" font-family="'Courier New',monospace"
+    <text x="36" y="162" font-family="'Courier New','Nanum Myeongjo','Batang',monospace"
       font-size="28" font-weight="bold" fill="#f0ece4">Day ${dayCurr}</text>
-    ${dayDelta !== 0 ? `<text x="180" y="162" font-family="'Courier New',monospace"
+    ${dayDelta !== 0 ? `<text x="180" y="162" font-family="'Courier New','Nanum Myeongjo','Batang',monospace"
       font-size="18" fill="${pcol}">${deltaLabel(dayDelta)}</text>` : ''}
     <text x="${W - 36}" y="138" text-anchor="end"
-      font-family="'Courier New',monospace" font-size="11"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="11"
       fill="#ffffff44" letter-spacing="2">PLANET</text>
     <text x="${W - 36}" y="162" text-anchor="end"
-      font-family="'Courier New',monospace" font-size="18"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="18"
       font-weight="bold" fill="${plChanged ? '#ffffff' : pcol}">${e(plLabel)}</text>
-    <text x="36" y="182" font-family="'Courier New',monospace"
+    <text x="36" y="182" font-family="'Courier New','Nanum Myeongjo','Batang',monospace"
       font-size="12" fill="#ffffff44">${e(loc || '—')}  ·  ${e(time || '—')}</text>
     <line x1="36" y1="196" x2="${W - 36}" y2="196"
       stroke="#ffffff12" stroke-width="1"/>
@@ -89,19 +89,19 @@ function buildSVG({ code, savedAt, dayCurr, dayPrev, dayDelta, plCurr, plPrev, c
     const mind    = String(ch.m || '···').slice(0, 28);
 
     return `
-      <text x="36" y="${y + 14}" font-family="'Courier New',monospace"
+      <text x="36" y="${y + 14}" font-family="'Courier New','Nanum Myeongjo','Batang',monospace"
         font-size="14" font-weight="bold" fill="${col}">${e(info.name)}</text>
       <rect x="${barX}" y="${y + 2}" width="${barW}" height="10"
         rx="5" fill="${col}18" stroke="${col}33" stroke-width="1"/>
       ${fillW > 0 ? `<rect x="${barX}" y="${y + 2}" width="${fillW}" height="10"
         rx="5" fill="${col}cc"/>` : ''}
       <text x="${barX + barW + 10}" y="${y + 12}" text-anchor="start"
-        font-family="'Courier New',monospace" font-size="13"
+        font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="13"
         font-weight="bold" fill="${col}">${pct}</text>
       ${dLabel ? `<text x="${barX + barW + 48}" y="${y + 12}" text-anchor="start"
-        font-family="'Courier New',monospace" font-size="11"
+        font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="11"
         fill="${dColor}">${e(dLabel)}</text>` : ''}
-      <text x="${barX}" y="${y + 34}" font-family="'Courier New',monospace"
+      <text x="${barX}" y="${y + 34}" font-family="'Courier New','Nanum Myeongjo','Batang',monospace"
         font-size="11" fill="${col}77">${e(mind)}</text>
     `;
   }).join('');
@@ -117,10 +117,10 @@ function buildSVG({ code, savedAt, dayCurr, dayPrev, dayDelta, plCurr, plPrev, c
   const cgSection = `
     <line x1="36" y1="${cgSectionY - 4}" x2="${W - 36}" y2="${cgSectionY - 4}"
       stroke="#ffffff12" stroke-width="1"/>
-    <text x="36" y="${cgSectionY + 13}" font-family="'Courier New',monospace"
+    <text x="36" y="${cgSectionY + 13}" font-family="'Courier New','Nanum Myeongjo','Batang',monospace"
       font-size="10" fill="#ffffff44" letter-spacing="2">CG GALLERY</text>
     <text x="${W - 36}" y="${cgSectionY + 13}" text-anchor="end"
-      font-family="'Courier New',monospace" font-size="10"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="10"
       fill="#ffffff44">${cgAll.length} / 50</text>
     ${MAIN_CHARS.map((c, ci) => {
       const col = CHAR_INFO[c].color;
@@ -143,10 +143,10 @@ function buildSVG({ code, savedAt, dayCurr, dayPrev, dayDelta, plCurr, plPrev, c
     <line x1="36" y1="643" x2="${W - 36}" y2="643"
       stroke="${pcol}33" stroke-width="1"/>
     <text x="${W / 2}" y="668" text-anchor="middle"
-      font-family="'Courier New',monospace" font-size="11"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="11"
       fill="${pcol}66" letter-spacing="3">LUMINOUS JOURNEY</text>
     <text x="${W / 2}" y="692" text-anchor="middle"
-      font-family="'Courier New',monospace" font-size="10"
+      font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="10"
       fill="${pcol}44">journey.html?code=${e(code)}</text>
     <rect x="0" y="${H - 3}" width="${W}" height="3" fill="${pcol}44"/>
   `;
@@ -170,7 +170,7 @@ function sendErrorSVG(res, msg) {
   <rect width="${W}" height="100" fill="#1a0a0a"/>
   <rect x="0" y="0" width="${W}" height="3" fill="#d47474"/>
   <text x="${W / 2}" y="54" text-anchor="middle"
-    font-family="'Courier New',monospace" font-size="14"
+    font-family="'Courier New','Nanum Myeongjo','Batang',monospace" font-size="14"
     fill="#d47474">${e(msg)}</text>
 </svg>`;
   res.setHeader('Content-Type', 'image/svg+xml');
