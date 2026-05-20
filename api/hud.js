@@ -72,54 +72,39 @@ function drawHourglass(cx, cy, col) {
   <path d="M ${cx-3},${cy+h-2} L ${cx+3},${cy+h-2} L ${cx},${cy+3} Z" fill="${col}" opacity="0.6"/>`;
 }
 
-// ── 시계 아이콘 (TIME) ────────────────────────────────────────
+// ── 시계 (TIME) — 원 + 시침/분침 ────────────────────────────
 function drawClock(cx, cy, col) {
   return `<circle cx="${cx}" cy="${cy}" r="9" fill="none" stroke="${col}" stroke-width="1.5"/>
-  <circle cx="${cx}" cy="${cy}" r="1.5" fill="${col}"/>
-  <line x1="${cx}" y1="${cy}" x2="${cx-4}" y2="${cy-3}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="${cx}" y1="${cy}" x2="${cx+1}" y2="${cy-6}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="${cx-2}" y1="${cy-9}" x2="${cx+2}" y2="${cy-9}" stroke="${col}" stroke-width="1" stroke-linecap="round"/>
-  <line x1="${cx}" y1="${cy+7}" x2="${cx}" y2="${cy+9}" stroke="${col}" stroke-width="1" stroke-linecap="round"/>`;
+  <line x1="${cx}" y1="${cy}" x2="${cx-4}" y2="${cy-4}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="${cx}" y1="${cy}" x2="${cx}"   y2="${cy-7}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
 }
 
-// ── 위치 마커 (LOCATION) ──────────────────────────────────────
+// ── 위치 마커 (LOCATION) — 원 + 수렴하는 두 선 ──────────────
 function drawPin(cx, cy, col) {
-  const r = 7, top = cy - 4, tip = cy + 9;
-  return `<path d="M ${cx},${tip} C ${cx-r},${top+4} ${cx-r},${top-2} ${cx-r+1},${top-4} A ${r} ${r} 0 1 1 ${cx+r-1},${top-4} C ${cx+r},${top-2} ${cx+r},${top+4} ${cx},${tip} Z"
-    fill="${col}" opacity="0.18" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/>
-  <circle cx="${cx}" cy="${top}" r="2.5" fill="${col}"/>`;
+  return `<circle cx="${cx}" cy="${cy-4}" r="6" fill="none" stroke="${col}" stroke-width="1.5"/>
+  <line x1="${cx-3}" y1="${cy+1}" x2="${cx}" y2="${cy+9}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="${cx+3}" y1="${cy+1}" x2="${cx}" y2="${cy+9}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
 }
 
-// ── 달력 아이콘 (DATE) ────────────────────────────────────────
+// ── 달력 (DATE) — 사각형 + 헤더선 + 클립 2개 ───────────────
 function drawCalendar(cx, cy, col) {
-  return `<rect x="${cx-9}" y="${cy-7}" width="18" height="17" rx="2" fill="none" stroke="${col}" stroke-width="1.5"/>
-  <line x1="${cx-9}" y1="${cy-1}" x2="${cx+9}" y2="${cy-1}" stroke="${col}" stroke-width="1"/>
-  <line x1="${cx-4}" y1="${cy-10}" x2="${cx-4}" y2="${cy-5}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="${cx+4}" y1="${cy-10}" x2="${cx+4}" y2="${cy-5}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>
-  <circle cx="${cx-5}" cy="${cy+3}" r="1.1" fill="${col}"/>
-  <circle cx="${cx}"   cy="${cy+3}" r="1.1" fill="${col}"/>
-  <circle cx="${cx+5}" cy="${cy+3}" r="1.1" fill="${col}"/>
-  <circle cx="${cx-5}" cy="${cy+8}" r="1.1" fill="${col}"/>
-  <circle cx="${cx}"   cy="${cy+8}" r="1.1" fill="${col}"/>`;
+  return `<rect x="${cx-8}" y="${cy-6}" width="16" height="15" rx="1.5" fill="none" stroke="${col}" stroke-width="1.5"/>
+  <line x1="${cx-8}" y1="${cy-1}" x2="${cx+8}" y2="${cy-1}" stroke="${col}" stroke-width="1"/>
+  <line x1="${cx-3}" y1="${cy-9}" x2="${cx-3}" y2="${cy-4}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="${cx+3}" y1="${cy-9}" x2="${cx+3}" y2="${cy-4}" stroke="${col}" stroke-width="1.5" stroke-linecap="round"/>`;
 }
 
-// ── 열차 옆모습 (DAY) ─────────────────────────────────────────
+// ── 열차 (DAY) — 사각형 차체 + 바퀴 2개 ────────────────────
 function drawTrain(cx, cy, col) {
-  const bw = 24, bh = 10, bx = cx - bw / 2, by = cy - 6;
-  return `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="2" fill="none" stroke="${col}" stroke-width="1.5"/>
-  <path d="M ${bx},${by+2} L ${bx-5},${by+bh/2} L ${bx},${by+bh-2}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/>
-  <rect x="${bx+3}"  y="${by+2}" width="5" height="5" rx="0.8" fill="${col}" opacity="0.4"/>
-  <rect x="${bx+11}" y="${by+2}" width="5" height="5" rx="0.8" fill="${col}" opacity="0.4"/>
-  <circle cx="${bx+5}"      cy="${by+bh+4}" r="3.5" fill="none" stroke="${col}" stroke-width="1.5"/>
-  <circle cx="${bx+bw-5}"   cy="${by+bh+4}" r="3.5" fill="none" stroke="${col}" stroke-width="1.5"/>
-  <line x1="${bx-7}" y1="${by+bh+8}" x2="${bx+bw+2}" y2="${by+bh+8}" stroke="${col}" stroke-width="1" opacity="0.4"/>`;
+  return `<rect x="${cx-12}" y="${cy-5}" width="24" height="9" rx="3" fill="none" stroke="${col}" stroke-width="1.5"/>
+  <circle cx="${cx-6}" cy="${cy+8}" r="3.5" fill="none" stroke="${col}" stroke-width="1.5"/>
+  <circle cx="${cx+6}" cy="${cy+8}" r="3.5" fill="none" stroke="${col}" stroke-width="1.5"/>`;
 }
 
-// ── 토성형 행성 (PLANET 레이블) ───────────────────────────────
+// ── 토성 (PLANET 레이블) — 원 + 링 ─────────────────────────
 function drawPlanetLabel(cx, cy, col) {
-  const r = 7;
-  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${col}" opacity="0.22" stroke="${col}" stroke-width="1.5"/>
-  <ellipse cx="${cx}" cy="${cy}" rx="${r+7}" ry="${Math.round(r*0.42)}" fill="none" stroke="${col}" stroke-width="1.5" transform="rotate(-20 ${cx} ${cy})"/>`;
+  return `<circle cx="${cx}" cy="${cy}" r="6" fill="none" stroke="${col}" stroke-width="1.5"/>
+  <ellipse cx="${cx}" cy="${cy}" rx="11" ry="4" fill="none" stroke="${col}" stroke-width="1.5" transform="rotate(-20 ${cx} ${cy})"/>`;
 }
 
 function drawIcon(name, cx, cy, col) {
