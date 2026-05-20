@@ -120,8 +120,8 @@ function buildSVG({ turn, time, loc, date, day }) {
 
     return `
   <text x="${cx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="${FONT}" font-size="${V_SZ + 8}" font-weight="bold"
-    fill="${pcol}" opacity="0.6" filter="url(#glow)" ${tl}>${val}</text>
+    font-family="${FONT}" font-size="${V_SZ}" font-weight="bold"
+    fill="${pcol}" opacity="0.7" filter="url(#glow)" ${tl}>${val}</text>
   <text x="${cx}" y="${VALUE_Y}" text-anchor="middle"
     font-family="${FONT}" font-size="${V_SZ}" font-weight="bold"
     fill="#f4f0ea" ${tl}>${val}</text>
@@ -138,8 +138,8 @@ function buildSVG({ turn, time, loc, date, day }) {
     font-family="${FONT}" font-size="${L_SZ}"
     fill="${pcol}" opacity="0.7" letter-spacing="3">PLANET</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
-    font-family="${FONT}" font-size="30" font-weight="bold"
-    fill="${pcol}" opacity="0.55" filter="url(#glow)">${pVal}</text>
+    font-family="${FONT}" font-size="24" font-weight="bold"
+    fill="${pcol}" opacity="0.7" filter="url(#glow)">${pVal}</text>
   <text x="${pCx}" y="${VALUE_Y}" text-anchor="middle"
     font-family="${FONT}" font-size="24" font-weight="bold"
     fill="${pcol}">${pVal}</text>`;
