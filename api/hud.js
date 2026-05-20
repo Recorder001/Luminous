@@ -114,6 +114,7 @@ function drawIcon(name, cx, cy, col) {
     case 'pin':       return drawPin(cx, cy, col);
     case 'calendar':  return drawCalendar(cx, cy, col);
     case 'flag':      return drawFlag(cx, cy, col);
+    case 'planet':    return drawPlanetLabel(cx, cy, col);
     default: return '';
   }
 }
@@ -187,10 +188,10 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
 
   const fields = [
     { value: String(turn || '—'), icon: 'hourglass' },
+    { value: String(date || '—'), icon: 'calendar'   },
     { value: timeVal,              icon: 'clock'     },
     { value: String(loc  || '—'), icon: 'pin'        },
-    { value: String(date || '—'), icon: 'calendar'   },
-    { value: dayVal,               icon: 'flag'      },
+    { value: planet.name,          icon: 'planet'    },
   ];
 
   const cols = calcColumns(fields);
@@ -256,9 +257,8 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
   // ── 행성 스트립 ───────────────────────────────────────────────
   const pCx = CONTENT_W + PLANET_STRIP_W / 2;
   const planetStrip = `
-  ${drawPlanetLabel(pCx, 22, pcol)}
-  <circle cx="${pCx}" cy="68" r="22" fill="${pcol}" opacity="0.12" filter="url(#glow)"/>
-  ${drawPlanet(pl, pCx, 68, pcol)}`;
+  <circle cx="${pCx}" cy="60" r="22" fill="${pcol}" opacity="0.12" filter="url(#glow)"/>
+  ${drawPlanet(pl, pCx, 60, pcol)}`;
 
   // ── 상하 강조선 ──────────────────────────────────────────────
   const accent = `
