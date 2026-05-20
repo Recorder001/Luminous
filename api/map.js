@@ -7,11 +7,11 @@ const H = 600;
 
 // 행성별 5개 장소 이름
 const PLANET_LOCS = {
-  1: ['Sunrise Gate',  'Solar Spire',    'Ember Fields',  'Corona Bay',    'Radiance Peak'],
-  2: ['Frost Hollow',  'Ice Cathedral',  'Crystal Lake',  'Blizzard Pass', 'Glacial Vault'],
-  3: ['Mossy Archway', 'Verdant Canopy', 'Root Nexus',    'Bloom Basin',   'Ancient Grove'],
-  4: ['Shadow Market', 'Veil Crossing',  'Obsidian Court','Dark Sanctum',  'Umbra Rift'],
-  5: ['Storm Cradle',  'Aether Bridge',  'Tempest Spire', 'Wind Altar',    'Cloud Citadel'],
+  1: ['무타스역',       '라미르 주점',   '마프스 시장',   '파르미타 증기탑', '마그리스 철도교'],
+  2: ['루멘역',         '비무크 광장',   '유미로 허브',   '조명 대로',       '리드 연구단지'],
+  3: ['우주정거장',     '폴라브 성당',   '라이민 왕성',   '새그리드 고원',   '순례자의 길'],
+  4: ['마스트역',       '로위렌 숲',     '비로마크 수원', '고목의 정원',     '이끼 광장'],
+  5: ['블림역',         '모리스 관측탑', '해미렌 황야',   '황혼의 언덕',     '별빛 항구'],
 };
 
 // 5개 장소 원형 배치 좌표 (중앙 기준)

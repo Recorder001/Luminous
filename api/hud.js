@@ -122,52 +122,54 @@ function drawIcon(name, cx, cy, col) {
 function drawPlanet(pl, cx, cy, pcol) {
   const r = 16;
   switch (pl) {
-    case 1: { // Solaris — 태양 (원 + 방사선)
-      const rays = Array.from({ length: 8 }, (_, i) => {
-        const a  = (i * 45 - 22.5) * Math.PI / 180;
-        const r1 = r + 4, r2 = r + 11;
-        const x1 = (cx + Math.cos(a) * r1).toFixed(1), y1 = (cy + Math.sin(a) * r1).toFixed(1);
-        const x2 = (cx + Math.cos(a) * r2).toFixed(1), y2 = (cy + Math.sin(a) * r2).toFixed(1);
-        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${pcol}" stroke-width="2" stroke-linecap="round"/>`;
+    case 1: { // 온메르타 — 톱니바퀴 (스팀펑크)
+      const n = 8, tw = 0.22, r2 = r + 7;
+      const teeth = Array.from({ length: n }, (_, i) => {
+        const a = i * 2 * Math.PI / n;
+        const ax = (cx + Math.cos(a-tw)*r).toFixed(1),  ay = (cy + Math.sin(a-tw)*r).toFixed(1);
+        const bx = (cx + Math.cos(a-tw)*r2).toFixed(1), by = (cy + Math.sin(a-tw)*r2).toFixed(1);
+        const cx2= (cx + Math.cos(a+tw)*r2).toFixed(1), cy2= (cy + Math.sin(a+tw)*r2).toFixed(1);
+        const dx = (cx + Math.cos(a+tw)*r).toFixed(1),  dy = (cy + Math.sin(a+tw)*r).toFixed(1);
+        return `<path d="M ${ax},${ay} L ${bx},${by} L ${cx2},${cy2} L ${dx},${dy} Z" fill="${pcol}" opacity="0.5"/>`;
       }).join('');
-      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${pcol}" opacity="0.2"/>
-  <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${pcol}" stroke-width="1.5"/>
-  <circle cx="${cx}" cy="${cy}" r="6" fill="${pcol}" opacity="0.8"/>
-  ${rays}`;
+      return `${teeth}
+  <circle cx="${cx}" cy="${cy}" r="${r}" fill="${pcol}" opacity="0.12" stroke="${pcol}" stroke-width="1.5"/>
+  <circle cx="${cx}" cy="${cy}" r="5" fill="none" stroke="${pcol}" stroke-width="1.5"/>`;
     }
-    case 2: { // Glaceon — 눈결정 (snowflake)
-      const arms = Array.from({ length: 6 }, (_, i) => {
-        const a  = i * 60 * Math.PI / 180;
-        const x1 = (cx + Math.cos(a) * 3).toFixed(1),  y1 = (cy + Math.sin(a) * 3).toFixed(1);
-        const x2 = (cx + Math.cos(a) * r).toFixed(1),  y2 = (cy + Math.sin(a) * r).toFixed(1);
-        const bx = cx + Math.cos(a) * r * 0.55, by = cy + Math.sin(a) * r * 0.55;
-        const b1 = a + 0.55, b2 = a - 0.55;
-        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${pcol}" stroke-width="1.5"/>
-  <line x1="${bx.toFixed(1)}" y1="${by.toFixed(1)}" x2="${(bx+Math.cos(b1)*6).toFixed(1)}" y2="${(by+Math.sin(b1)*6).toFixed(1)}" stroke="${pcol}" stroke-width="1"/>
-  <line x1="${bx.toFixed(1)}" y1="${by.toFixed(1)}" x2="${(bx+Math.cos(b2)*6).toFixed(1)}" y2="${(by+Math.sin(b2)*6).toFixed(1)}" stroke="${pcol}" stroke-width="1"/>`;
-      }).join('');
-      return `<circle cx="${cx}" cy="${cy}" r="${r+5}" fill="none" stroke="${pcol}" stroke-width="0.5" opacity="0.3"/>
-  ${arms}
-  <circle cx="${cx}" cy="${cy}" r="3" fill="${pcol}"/>`;
+    case 2: { // 타르미오스 — 육각형 + 크로스헤어 (사이버틱)
+      const hexPts = Array.from({ length: 6 }, (_, i) => {
+        const a = i * Math.PI / 3 - Math.PI / 6;
+        return `${(cx + Math.cos(a)*r).toFixed(1)},${(cy + Math.sin(a)*r).toFixed(1)}`;
+      }).join(' ');
+      return `<polygon points="${hexPts}" fill="${pcol}" opacity="0.12" stroke="${pcol}" stroke-width="1.5"/>
+  <line x1="${cx-r+2}" y1="${cy}" x2="${cx+r-2}" y2="${cy}" stroke="${pcol}" stroke-width="1" opacity="0.7"/>
+  <line x1="${cx}" y1="${cy-r+2}" x2="${cx}" y2="${cy+r-2}" stroke="${pcol}" stroke-width="1" opacity="0.7"/>
+  <circle cx="${cx}" cy="${cy}" r="3" fill="${pcol}" opacity="0.9"/>`;
     }
-    case 3: { // Verdania — 행성 + 링 (Saturn-like)
-      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${pcol}" opacity="0.22" stroke="${pcol}" stroke-width="1.5"/>
-  <circle cx="${cx}" cy="${cy}" r="5" fill="${pcol}" opacity="0.55"/>
-  <ellipse cx="${cx}" cy="${cy}" rx="${r+10}" ry="${Math.round(r*0.38)}" fill="none" stroke="${pcol}" stroke-width="1.8" transform="rotate(-18 ${cx} ${cy})"/>`;
+    case 3: { // 마프히트 — 방패 (중세 유럽)
+      const sw = 14, top = cy - 12, mid = cy + 2, tip = cy + 18;
+      return `<path d="M ${cx-sw},${top} L ${cx+sw},${top} L ${cx+sw},${mid} L ${cx},${tip} L ${cx-sw},${mid} Z"
+    fill="${pcol}" opacity="0.15" stroke="${pcol}" stroke-width="1.5"/>
+  <line x1="${cx}" y1="${top}" x2="${cx}" y2="${tip}" stroke="${pcol}" stroke-width="0.8" opacity="0.5"/>
+  <line x1="${cx-sw}" y1="${mid-4}" x2="${cx+sw}" y2="${mid-4}" stroke="${pcol}" stroke-width="0.8" opacity="0.5"/>`;
     }
-    case 4: { // Umbra — 초승달 + 별
-      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${pcol}" opacity="0.5"/>
-  <circle cx="${cx+7}" cy="${cy-2}" r="${r-3}" fill="#0a0a12"/>
-  <circle cx="${cx-11}" cy="${cy-9}" r="1"   fill="${pcol}" opacity="0.8"/>
-  <circle cx="${cx+10}" cy="${cy+10}" r="0.8" fill="${pcol}" opacity="0.8"/>
-  <circle cx="${cx-5}"  cy="${cy+11}" r="0.7" fill="${pcol}" opacity="0.6"/>
-  <circle cx="${cx+4}"  cy="${cy-14}" r="0.7" fill="${pcol}" opacity="0.7"/>`;
+    case 4: { // 미아크 — 잎사귀 (자연)
+      const lh = r + 3;
+      return `<path d="M ${cx},${cy+lh} Q ${cx-r-4},${cy} ${cx},${cy-lh} Q ${cx+r+4},${cy} ${cx},${cy+lh} Z"
+    fill="${pcol}" opacity="0.2" stroke="${pcol}" stroke-width="1.5"/>
+  <line x1="${cx}" y1="${cy-lh}" x2="${cx}" y2="${cy+lh}" stroke="${pcol}" stroke-width="1" opacity="0.55"/>
+  <line x1="${cx}" y1="${cy+2}" x2="${cx-8}" y2="${cy-5}" stroke="${pcol}" stroke-width="0.8" opacity="0.5"/>
+  <line x1="${cx}" y1="${cy-4}" x2="${cx+8}" y2="${cy-11}" stroke="${pcol}" stroke-width="0.8" opacity="0.5"/>`;
     }
-    case 5: { // Aethon — 번개
-      return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${pcol}" opacity="0.1" stroke="${pcol}" stroke-width="1"/>
-  <circle cx="${cx}" cy="${cy}" r="${r+7}" fill="none" stroke="${pcol}" stroke-width="0.6" opacity="0.3"/>
-  <path d="M ${cx+5},${cy-14} L ${cx-5},${cy-1} L ${cx+3},${cy-1} L ${cx-5},${cy+14}"
-    fill="none" stroke="${pcol}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    case 5: { // 프레이라 — 황혼 (수평선 + 반원 + 별)
+      const hY = cy + 6;
+      return `<path d="M ${cx-r},${hY} A ${r} ${r} 0 0 1 ${cx+r},${hY} Z"
+    fill="${pcol}" opacity="0.15" stroke="${pcol}" stroke-width="1.5"/>
+  <line x1="${cx-r-5}" y1="${hY}" x2="${cx+r+5}" y2="${hY}" stroke="${pcol}" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="${cx-10}" cy="${cy-9}"  r="1"   fill="${pcol}" opacity="0.85"/>
+  <circle cx="${cx+9}"  cy="${cy-12}" r="1.2" fill="${pcol}" opacity="0.9"/>
+  <circle cx="${cx+15}" cy="${cy-4}"  r="0.8" fill="${pcol}" opacity="0.7"/>
+  <circle cx="${cx-3}"  cy="${cy-16}" r="0.9" fill="${pcol}" opacity="0.8"/>`;
     }
     default: return '';
   }
