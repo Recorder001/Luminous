@@ -1,6 +1,7 @@
-// HUD — 1080×120 (9:1) — PNG via @resvg/resvg-js
-const fs   = require('fs');
-const path = require('path');
+// HUD — 1080×120 (9:1) — PNG or animated GIF via @resvg/resvg-js + sharp
+const fs    = require('fs');
+const path  = require('path');
+const sharp = require('sharp');
 const { Resvg } = require('@resvg/resvg-js');
 const { setCors } = require('../lib/validate');
 const { dayToPlanet, PLANET_INFO } = require('../lib/constants');
@@ -174,7 +175,7 @@ function drawPlanet(pl, cx, cy, pcol) {
   }
 }
 
-function buildSVG({ turn, hour, min, loc, date, day }) {
+function buildSVG({ turn, hour, min, loc, date, day, transparent = false }) {
   const pl     = dayToPlanet(day);
   const planet = PLANET_INFO[pl];
   const pcol   = planet.color;
@@ -269,7 +270,7 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
       <feGaussianBlur stdDeviation="30"/>
     </filter>
   </defs>
-  <rect width="${W}" height="${H}" fill="#0a0a12"/>
+  ${transparent ? '' : `<rect width="${W}" height="${H}" fill="#0a0a12"/>`}
   <!-- L/R 엣지 앰비언트 글로우 (고정) -->
   <rect x="-10" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.13" filter="url(#edgeglow)"/>
   <rect x="${W - 210}" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.13" filter="url(#edgeglow)"/>
@@ -290,10 +291,40 @@ module.exports = async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { turn, hour, min, loc, date, day } = req.query;
+  const { turn, hour, min, loc, date, day, bg } = req.query;
 
   try {
     ensureFont();
+
+    if (bg) {
+      // ── GIF 합성 모드 ──────────────────────────────────────────
+      // HUD를 투명 배경 PNG로 렌더
+      const svg    = buildSVG({ turn, hour, min, loc, date, day, transparent: true });
+      const resvg  = new Resvg(svg, {
+        font: { fontFiles: [FONT_PATH], loadSystemFonts: false },
+        fitTo: { mode: 'width', value: W },
+      });
+      const hudPng = Buffer.from(resvg.render().asPng());
+
+      // 배경 GIF 가져오기
+      const bgRes = await fetch(bg);
+      if (!bgRes.ok) throw new Error(`bg fetch failed: ${bgRes.status}`);
+      const gifBuf = Buffer.from(await bgRes.arrayBuffer());
+
+      // 모든 프레임에 HUD 오버레이 합성 → animated GIF 출력
+      const outGif = await sharp(gifBuf, { animated: true })
+        .resize(W, H, { fit: 'cover', position: 'centre' })
+        .composite([{ input: hudPng, tile: true, blend: 'over' }])
+        .gif({ loop: 0 })
+        .toBuffer();
+
+      res.setHeader('Content-Type', 'image/gif');
+      res.setHeader('Content-Disposition', 'inline; filename="hud.gif"');
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).send(outGif);
+    }
+
+    // ── 기본 PNG 모드 ──────────────────────────────────────────
     const svg = buildSVG({ turn, hour, min, loc, date, day });
     const resvg = new Resvg(svg, {
       font: { fontFiles: [FONT_PATH], loadSystemFonts: false },
