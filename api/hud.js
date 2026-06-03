@@ -1,10 +1,11 @@
-// HUD — 1080×120 (9:1) — PNG or animated GIF via @resvg/resvg-js + sharp
+// HUD — 1080×120 (9:1) — animated GIF via @resvg/resvg-js + sharp + gif-builder
 const fs    = require('fs');
 const path  = require('path');
 const sharp = require('sharp');
-const { Resvg } = require('@resvg/resvg-js');
-const { setCors } = require('../lib/validate');
+const { Resvg }    = require('@resvg/resvg-js');
+const { setCors }  = require('../lib/validate');
 const { dayToPlanet, PLANET_INFO } = require('../lib/constants');
+const { makeBgGif } = require('../lib/gif-builder');
 
 const FONT_SRC  = path.join(__dirname, '../lib/fonts/nanum-subset.ttf');
 const FONT_PATH = '/tmp/nm-hud.ttf';
@@ -296,44 +297,39 @@ module.exports = async (req, res) => {
   try {
     ensureFont();
 
-    if (bg) {
-      // ── GIF 합성 모드 ──────────────────────────────────────────
-      // HUD를 투명 배경 PNG로 렌더
-      const svg    = buildSVG({ turn, hour, min, loc, date, day, transparent: true });
-      const resvg  = new Resvg(svg, {
-        font: { fontFiles: [FONT_PATH], loadSystemFonts: false },
-        fitTo: { mode: 'width', value: W },
-      });
-      const hudPng = Buffer.from(resvg.render().asPng());
-
-      // 배경 GIF 가져오기
-      const bgRes = await fetch(bg);
-      if (!bgRes.ok) throw new Error(`bg fetch failed: ${bgRes.status}`);
-      const gifBuf = Buffer.from(await bgRes.arrayBuffer());
-
-      // 모든 프레임에 HUD 오버레이 합성 → animated GIF 출력
-      const outGif = await sharp(gifBuf, { animated: true })
-        .resize(W, H, { fit: 'cover', position: 'centre' })
-        .composite([{ input: hudPng, tile: true, blend: 'over' }])
-        .gif({ loop: 0 })
-        .toBuffer();
-
-      res.setHeader('Content-Type', 'image/gif');
-      res.setHeader('Content-Disposition', 'inline; filename="hud.gif"');
-      res.setHeader('Cache-Control', 'no-store');
-      return res.status(200).send(outGif);
-    }
-
-    // ── 기본 PNG 모드 ──────────────────────────────────────────
-    const svg = buildSVG({ turn, hour, min, loc, date, day });
-    const resvg = new Resvg(svg, {
+    // ── HUD 전경 레이어 (투명 배경) ─────────────────────────────
+    const pl   = dayToPlanet(day);
+    const pcol = PLANET_INFO[pl].color;
+    const svg    = buildSVG({ turn, hour, min, loc, date, day, transparent: true });
+    const resvg  = new Resvg(svg, {
       font: { fontFiles: [FONT_PATH], loadSystemFonts: false },
       fitTo: { mode: 'width', value: W },
     });
-    const png = resvg.render().asPng();
-    res.setHeader('Content-Type', 'image/png');
+    const hudPng = Buffer.from(resvg.render().asPng());
+
+    // ── 배경 GIF ────────────────────────────────────────────────
+    // ?bg=<url>: 외부 GIF 사용 (리사이즈/크롭)
+    // 없으면: 행성 색 edge-glow 애니메이션을 코드로 생성
+    let gifBuf;
+    if (bg) {
+      const bgRes = await fetch(bg);
+      if (!bgRes.ok) throw new Error(`bg fetch failed: ${bgRes.status}`);
+      gifBuf = Buffer.from(await bgRes.arrayBuffer());
+    } else {
+      gifBuf = makeBgGif(pcol, W, H);
+    }
+
+    // ── 합성 → animated GIF ─────────────────────────────────────
+    const outGif = await sharp(gifBuf, { animated: true })
+      .resize(W, H, { fit: 'cover', position: 'centre' })
+      .composite([{ input: hudPng, tile: true, blend: 'over' }])
+      .gif({ loop: 0 })
+      .toBuffer();
+
+    res.setHeader('Content-Type', 'image/gif');
+    res.setHeader('Content-Disposition', 'inline; filename="hud.gif"');
     res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).send(Buffer.from(png));
+    return res.status(200).send(outGif);
   } catch (err) {
     const errMsg = String(err?.message || err);
     const svg = `<?xml version="1.0" encoding="UTF-8"?>
