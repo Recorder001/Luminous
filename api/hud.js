@@ -15,11 +15,9 @@ function ensureFont() {
   }
 }
 
-const W              = 1080;
-const H              = 120;
-const PLANET_STRIP_W = 108;
-const CONTENT_W      = W - PLANET_STRIP_W;
-const MIN_COL_W      = 90;
+const W         = 1080;
+const H         = 120;
+const MIN_COL_W = 90;
 const V_SZ           = 54;
 const L_SZ           = 9;
 const VALUE_Y        = 88;
@@ -50,9 +48,9 @@ function calcColumns(fields) {
     Math.max(MIN_COL_W, estimateW(f.value, V_SZ) + PAD)
   );
   const total = raw.reduce((a, b) => a + b, 0);
-  const scale = CONTENT_W / total;
+  const scale = W / total;
   const widths = raw.map(w => Math.round(w * scale));
-  widths[widths.length - 1] += CONTENT_W - widths.reduce((a, b) => a + b, 0);
+  widths[widths.length - 1] += W - widths.reduce((a, b) => a + b, 0);
   let cx = 0;
   return widths.map(w => {
     const center = cx + w / 2;
@@ -191,7 +189,7 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
     { value: String(date || '—'), icon: 'calendar'   },
     { value: timeVal,              icon: 'clock'     },
     { value: String(loc  || '—'), icon: 'pin'        },
-    { value: planet.name,          icon: 'planet'    },
+    { value: dayVal,               icon: 'flag'      },
   ];
 
   const cols = calcColumns(fields);
@@ -231,8 +229,6 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
     return `<line x1="${bx}" y1="14" x2="${bx}" y2="${H - 14}" stroke="${pcol}" stroke-width="0.6" opacity="0.28"/>`;
   }).join('\n  ');
 
-  const planetDiv = `<line x1="${CONTENT_W}" y1="10" x2="${CONTENT_W}" y2="${H - 10}" stroke="${pcol}" stroke-width="0.8" opacity="0.35"/>`;
-
   // ── 컬럼 텍스트 ──────────────────────────────────────────────
   const cells = fields.map((f, i) => {
     const { cx, maxTextW } = cols[i];
@@ -253,12 +249,6 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
     font-family="${FONT}" font-size="${V_SZ}" font-weight="bold"
     fill="#f4f0ea" ${tl}>${val}</text>`;
   }).join('');
-
-  // ── 행성 스트립 ───────────────────────────────────────────────
-  const pCx = CONTENT_W + PLANET_STRIP_W / 2;
-  const planetStrip = `
-  <circle cx="${pCx}" cy="60" r="22" fill="${pcol}" opacity="0.12" filter="url(#glow)"/>
-  ${drawPlanet(pl, pCx, 60, pcol)}`;
 
   // ── 상하 강조선 ──────────────────────────────────────────────
   const accent = `
@@ -291,11 +281,8 @@ function buildSVG({ turn, hour, min, loc, date, day }) {
   ${accent}
   <!-- 구분선 -->
   ${dividers}
-  ${planetDiv}
   <!-- 컬럼 텍스트 -->
   ${cells}
-  <!-- 행성 스트립 -->
-  ${planetStrip}
 </svg>`;
 }
 
