@@ -188,10 +188,10 @@ function buildSVG({ turn, hour, min, loc, date, day, transparent = false }) {
 
   const fields = [
     { value: String(turn || '—'), icon: 'hourglass' },
-    { value: String(date || '—'), icon: 'calendar'   },
+    { value: dayVal,               icon: 'flag'      },
     { value: timeVal,              icon: 'clock'     },
     { value: String(loc  || '—'), icon: 'pin'        },
-    { value: dayVal,               icon: 'flag'      },
+    { value: planet.name,          icon: 'planet'    },
   ];
 
   const cols = calcColumns(fields);
