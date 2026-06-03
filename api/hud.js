@@ -320,8 +320,11 @@ module.exports = async (req, res) => {
     }
 
     // ── 합성 → animated GIF ─────────────────────────────────────
-    const outGif = await sharp(gifBuf, { animated: true })
-      .resize(W, H, { fit: 'cover', position: 'centre' })
+    // External bg may be any size → resize. Code-generated bg is already W×H
+    // per frame; calling resize on it would crop the stacked internal image.
+    let pipeline = sharp(gifBuf, { animated: true });
+    if (bg) pipeline = pipeline.resize(W, H, { fit: 'cover', position: 'centre' });
+    const outGif = await pipeline
       .composite([{ input: hudPng, tile: true, blend: 'over' }])
       .gif({ loop: 0 })
       .toBuffer();
