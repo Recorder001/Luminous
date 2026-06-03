@@ -273,8 +273,8 @@ function buildSVG({ turn, hour, min, loc, date, day, transparent = false }) {
   </defs>
   ${transparent ? '' : `<rect width="${W}" height="${H}" fill="#0a0a12"/>`}
   <!-- L/R 엣지 앰비언트 글로우 (고정) -->
-  <rect x="-10" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.13" filter="url(#edgeglow)"/>
-  <rect x="${W - 210}" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.13" filter="url(#edgeglow)"/>
+  <rect x="-10" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.07" filter="url(#edgeglow)"/>
+  <rect x="${W - 210}" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.07" filter="url(#edgeglow)"/>
   <!-- 배경 원 (stroke only, 필터 없음 — 가장자리 걸친 원에 blur 적용시 resvg panic) -->
   <g>
     ${circleStrokes}
