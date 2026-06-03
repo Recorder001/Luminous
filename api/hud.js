@@ -245,11 +245,7 @@ function buildSVG({ turn, hour, min, loc, date, day, transparent = false }) {
       : '';
 
     const ICON_Y = 26;
-    const rawIcon = drawIcon(f.icon, cx, ICON_Y, pcol);
-    // 턴 컬럼 아이콘만 1.4× 크게
-    const labelEl = i === 0
-      ? `<g transform="translate(${cx},${ICON_Y}) scale(1.4) translate(-${cx},-${ICON_Y})">${rawIcon}</g>`
-      : rawIcon;
+    const labelEl = drawIcon(f.icon, cx, ICON_Y, pcol);
 
     return `
   ${labelEl}
