@@ -231,6 +231,10 @@ function buildSVG({ turn, hour, min, loc, date, day, transparent = false }) {
     return `<line x1="${bx}" y1="14" x2="${bx}" y2="${H - 14}" stroke="${pcol}" stroke-width="0.6" opacity="0.28"/>`;
   }).join('\n  ');
 
+  // ── 턴 컬럼 배경 패널 ────────────────────────────────────────
+  const turnW = cols[0].w;
+  const turnPanel = `<rect x="0" y="0" width="${turnW}" height="${H}" fill="${pcol}" opacity="0.10"/>`;
+
   // ── 컬럼 텍스트 ──────────────────────────────────────────────
   const cells = fields.map((f, i) => {
     const { cx, maxTextW } = cols[i];
@@ -240,7 +244,12 @@ function buildSVG({ turn, hour, min, loc, date, day, transparent = false }) {
       ? `textLength="${Math.round(maxTextW)}" lengthAdjust="spacingAndGlyphs"`
       : '';
 
-    const labelEl = drawIcon(f.icon, cx, 26, pcol);
+    const ICON_Y = 26;
+    const rawIcon = drawIcon(f.icon, cx, ICON_Y, pcol);
+    // 턴 컬럼 아이콘만 1.4× 크게
+    const labelEl = i === 0
+      ? `<g transform="translate(${cx},${ICON_Y}) scale(1.4) translate(-${cx},-${ICON_Y})">${rawIcon}</g>`
+      : rawIcon;
 
     return `
   ${labelEl}
@@ -252,10 +261,11 @@ function buildSVG({ turn, hour, min, loc, date, day, transparent = false }) {
     fill="#f4f0ea" ${tl}>${val}</text>`;
   }).join('');
 
-  // ── 상하 강조선 ──────────────────────────────────────────────
+  // ── 상하 강조선 (턴 컬럼 상단만 두껍게) ─────────────────────
   const accent = `
   <rect x="0" y="0" width="${W}" height="4" fill="${pcol}" opacity="0.3"/>
   <rect x="0" y="0" width="${W}" height="2.5" fill="${pcol}"/>
+  <rect x="0" y="0" width="${turnW}" height="6" fill="${pcol}"/>
   <rect x="0" y="${H - 1.5}" width="${W}" height="1.5" fill="${pcol}" opacity="0.28"/>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -275,6 +285,8 @@ function buildSVG({ turn, hour, min, loc, date, day, transparent = false }) {
   <!-- L/R 엣지 앰비언트 글로우 (고정) -->
   <rect x="-10" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.07" filter="url(#edgeglow)"/>
   <rect x="${W - 210}" y="-10" width="220" height="${H + 20}" fill="${pcol}" opacity="0.07" filter="url(#edgeglow)"/>
+  <!-- 턴 컬럼 배경 패널 -->
+  ${turnPanel}
   <!-- 배경 원 (stroke only, 필터 없음 — 가장자리 걸친 원에 blur 적용시 resvg panic) -->
   <g>
     ${circleStrokes}
