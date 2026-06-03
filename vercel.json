@@ -1,4 +1,7 @@
 {
+  "rewrites": [
+    { "source": "/api/hud.gif", "destination": "/api/hud" }
+  ],
   "functions": {
     "api/hud.js": {
       "memory": 1024,
