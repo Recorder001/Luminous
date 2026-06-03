@@ -325,7 +325,7 @@ module.exports = async (req, res) => {
     let pipeline = sharp(gifBuf, { animated: true });
     if (bg) pipeline = pipeline.resize(W, H, { fit: 'cover', position: 'centre' });
     const outGif = await pipeline
-      .composite([{ input: hudPng, tile: true, blend: 'over' }])
+      .composite([{ input: hudPng, tile: true, blend: 'over', top: 0, left: 0 }])
       .gif({ loop: 0 })
       .toBuffer();
 
