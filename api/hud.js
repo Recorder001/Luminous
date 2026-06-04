@@ -324,7 +324,7 @@ module.exports = async (req, res) => {
       if (!bgRes.ok) throw new Error(`bg fetch failed: ${bgRes.status}`);
       gifBuf = Buffer.from(await bgRes.arrayBuffer());
     } else {
-      gifBuf = makeBgGif(pcol, W, H);
+      gifBuf = makeBgGif(pcol, W, H, Math.floor(Math.random() * 0xFFFF));
     }
 
     // ── 합성 → animated GIF ─────────────────────────────────────
