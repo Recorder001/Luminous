@@ -14,26 +14,33 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 20px;
+      padding: 60px 20px;
     }
     h1 {
-      font-size: 28px;
-      letter-spacing: 6px;
-      color: #e8b86d;
-      margin-bottom: 8px;
+      font-size: 30px;
+      letter-spacing: 8px;
+      color: #c8c8ff;
+      margin-bottom: 6px;
     }
-    .sub { font-size: 12px; color: #ffffff44; letter-spacing: 3px; margin-bottom: 48px; }
+    .sub { font-size: 11px; color: #ffffff33; letter-spacing: 4px; margin-bottom: 56px; }
+
     .card {
       background: #12121e;
       border: 1px solid #ffffff1a;
       border-radius: 8px;
       padding: 32px;
       width: 100%;
-      max-width: 560px;
-      margin-bottom: 24px;
+      max-width: 480px;
+      margin-bottom: 20px;
     }
-    .card h2 { font-size: 13px; letter-spacing: 3px; color: #ffffff55; margin-bottom: 20px; }
-    .row { display: flex; gap: 12px; }
+    .card h2 {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #ffffff44;
+      margin-bottom: 20px;
+    }
+    .row { display: flex; gap: 10px; }
+
     input {
       flex: 1;
       background: #0d0d14;
@@ -41,80 +48,126 @@
       border-radius: 4px;
       color: #f0ece4;
       font-family: 'Courier New', monospace;
-      font-size: 14px;
+      font-size: 20px;
       padding: 10px 14px;
-      letter-spacing: 2px;
+      letter-spacing: 6px;
       outline: none;
+      text-transform: uppercase;
       transition: border-color 0.2s;
     }
-    input:focus { border-color: #e8b86d88; }
+    input:focus { border-color: #c8c8ff66; }
+    input::placeholder { color: #ffffff22; font-size: 14px; letter-spacing: 2px; }
+
     button {
-      background: #e8b86d22;
-      border: 1px solid #e8b86d66;
+      background: #c8c8ff18;
+      border: 1px solid #c8c8ff44;
       border-radius: 4px;
-      color: #e8b86d;
+      color: #c8c8ff;
       font-family: 'Courier New', monospace;
-      font-size: 13px;
+      font-size: 12px;
       letter-spacing: 2px;
-      padding: 10px 20px;
+      padding: 10px 18px;
       cursor: pointer;
-      transition: background 0.2s;
       white-space: nowrap;
+      transition: background 0.2s;
     }
-    button:hover { background: #e8b86d33; }
+    button:hover { background: #c8c8ff28; }
+    button.secondary {
+      background: none;
+      border-color: #ffffff22;
+      color: #ffffff55;
+    }
+    button.secondary:hover { background: #ffffff08; color: #ffffff88; }
+
     .result {
-      margin-top: 16px;
-      font-size: 13px;
+      margin-top: 14px;
+      font-size: 12px;
       color: #74d4a5;
       letter-spacing: 1px;
-      min-height: 20px;
+      min-height: 18px;
     }
     .result.err { color: #d47474; }
-    .saves-list { margin-top: 20px; }
-    .save-item {
-      border: 1px solid #ffffff0d;
-      border-radius: 4px;
-      padding: 12px 16px;
-      margin-bottom: 8px;
-      font-size: 12px;
-      color: #ffffff88;
+
+    .divider {
+      border: none;
+      border-top: 1px solid #ffffff0d;
+      margin: 20px 0;
     }
-    .save-item strong { color: #e8b86d; font-size: 14px; }
+
+    .code-display {
+      font-size: 32px;
+      letter-spacing: 10px;
+      color: #c8c8ff;
+      font-weight: bold;
+      text-align: center;
+      padding: 16px 0 8px;
+    }
+    .code-hint {
+      font-size: 10px;
+      color: #ffffff33;
+      letter-spacing: 1px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .journey-link {
+      display: block;
+      text-align: center;
+      color: #c8c8ff;
+      text-decoration: none;
+      font-size: 11px;
+      letter-spacing: 2px;
+      border: 1px solid #c8c8ff44;
+      border-radius: 4px;
+      padding: 10px;
+      transition: background 0.2s;
+    }
+    .journey-link:hover { background: #c8c8ff18; }
   </style>
 </head>
 <body>
   <h1>LUMINOUS</h1>
   <p class="sub">JOURNEY SYSTEM</p>
 
+  <!-- 코드 발급 -->
   <div class="card">
-    <h2>CODE GENERATE</h2>
+    <h2>NEW CODE</h2>
     <button onclick="generateCode()">새 코드 발급</button>
     <div class="result" id="gen-result"></div>
+    <div id="gen-code-display" style="display:none">
+      <hr class="divider">
+      <div class="code-display" id="gen-code-text"></div>
+      <div class="code-hint">이 코드를 안전한 곳에 저장해두세요</div>
+      <a class="journey-link" id="gen-journey-link" href="#" target="_blank">여정 기록 보기 →</a>
+    </div>
   </div>
 
+  <!-- 코드 조회 -->
   <div class="card">
     <h2>JOURNEY LOOKUP</h2>
     <div class="row">
-      <input id="lookup-code" placeholder="16자리 코드 입력" maxlength="16"/>
+      <input id="lookup-code" placeholder="코드 입력 (5자리)" maxlength="5" spellcheck="false"
+        onkeydown="if(event.key==='Enter') lookupJourney()"/>
       <button onclick="lookupJourney()">조회</button>
     </div>
     <div class="result" id="lookup-result"></div>
-    <div class="saves-list" id="saves-list"></div>
   </div>
 
   <script>
     async function generateCode() {
-      const el = document.getElementById('gen-result');
+      const el  = document.getElementById('gen-result');
+      const box = document.getElementById('gen-code-display');
       el.className = 'result';
       el.textContent = '생성 중…';
+      box.style.display = 'none';
       try {
         const r = await fetch('/api/generate-code', { method: 'POST' });
         const d = await r.json();
         if (d.code) {
-          el.innerHTML = `발급 완료: <strong>${d.code}</strong>
-            &nbsp;&nbsp;<a href="/journey.html?code=${d.code}"
-              style="color:#e8b86d;text-decoration:none;border-bottom:1px solid #e8b86d55"
-              target="_blank">여정 보기 →</a>`;
+          el.textContent = '발급 완료';
+          document.getElementById('gen-code-text').textContent = d.code;
+          const link = document.getElementById('gen-journey-link');
+          link.href = `/journey.html?code=${d.code}`;
+          box.style.display = 'block';
         } else {
           el.className = 'result err';
           el.textContent = d.error || '오류 발생';
@@ -128,33 +181,23 @@
     async function lookupJourney() {
       const code = document.getElementById('lookup-code').value.trim().toUpperCase();
       const res  = document.getElementById('lookup-result');
-      const list = document.getElementById('saves-list');
       res.className = 'result';
-      res.textContent = '조회 중…';
-      list.innerHTML = '';
       if (!code) { res.className = 'result err'; res.textContent = '코드를 입력해주세요'; return; }
+      if (!/^[0-9A-F]{5}$/.test(code)) {
+        res.className = 'result err';
+        res.textContent = '5자리 16진수(0-9, A-F)를 입력해주세요';
+        return;
+      }
+      res.textContent = '조회 중…';
       try {
-        const r = await fetch('/api/journey?code=' + encodeURIComponent(code));
+        const r = await fetch(`/api/journey?code=${encodeURIComponent(code)}`);
         const d = await r.json();
-        if (!r.ok) {
-          res.className = 'result err';
-          res.textContent = d.error || '오류';
-          return;
-        }
+        if (!r.ok) { res.className = 'result err'; res.textContent = d.error || '오류'; return; }
         const saves = d.saves || [];
-        res.innerHTML = `저장 ${saves.length}건 / CG ${(d.cg || []).length}개 언락
+        res.innerHTML = `저장 ${saves.length}건 / CG ${(d.cg||[]).length}개
           &nbsp;&nbsp;<a href="/journey.html?code=${code}"
-            style="color:#e8b86d;text-decoration:none;border-bottom:1px solid #e8b86d55"
-            target="_blank">전체 여정 보기 →</a>`;
-        list.innerHTML = saves.map(s => `
-          <div class="save-item">
-            <strong>Day ${s.day_curr}</strong>
-            &nbsp;·&nbsp;${s.time_of_day || '—'}
-            &nbsp;·&nbsp;${s.loc || '—'}
-            <br>
-            <span style="color:#ffffff44">${s.saved_at ? s.saved_at.slice(0,16).replace('T',' ') : ''}</span>
-          </div>
-        `).join('');
+            style="color:#c8c8ff;text-decoration:none;border-bottom:1px solid #c8c8ff44">
+            여정 보기 →</a>`;
       } catch {
         res.className = 'result err';
         res.textContent = '네트워크 오류';

@@ -1,13 +1,10 @@
 const supabase = require('../lib/supabase');
 const { setCors } = require('../lib/validate');
 
-const CHARSET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-
+// 5자리 16진수 대문자: 00000 ~ FFFFF (1,048,576 경우의 수)
 function makeCode() {
-  let code = '';
-  for (let i = 0; i < 16; i++)
-    code += CHARSET[Math.floor(Math.random() * CHARSET.length)];
-  return code;
+  const n = Math.floor(Math.random() * 0x100000);
+  return n.toString(16).toUpperCase().padStart(5, '0');
 }
 
 module.exports = async (req, res) => {

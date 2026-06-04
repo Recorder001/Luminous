@@ -1,4 +1,4 @@
-// GET /api/journey?code=XXXXXXXXXXXXXXXX
+// GET /api/journey?code=XXXXX
 const supabase = require('../lib/supabase');
 const { validateCode, setCors } = require('../lib/validate');
 
@@ -9,20 +9,20 @@ module.exports = async (req, res) => {
   const { code } = req.query;
   if (!code) return res.status(400).json({ error: 'code required' });
 
-  const valid = await validateCode(code);
+  const valid = await validateCode(code.toUpperCase());
   if (!valid) return res.status(404).json({ error: 'invalid code' });
 
   const [{ data: saves }, { data: cg }] = await Promise.all([
     supabase
       .from('saves')
       .select('*')
-      .eq('code', code)
-      .order('saved_at', { ascending: false })
-      .limit(50),
+      .eq('code', code.toUpperCase())
+      .order('saved_at', { ascending: true })
+      .limit(200),
     supabase
       .from('cg_unlocks')
       .select('*')
-      .eq('code', code)
+      .eq('code', code.toUpperCase())
       .order('unlocked_at', { ascending: true }),
   ]);
 
