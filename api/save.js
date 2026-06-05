@@ -1,5 +1,5 @@
-// Save — 800×900 (8:9)
-const supabase = require('../lib/supabase');
+// Save — 800×900
+const { sql } = require('../lib/db');
 const { validateCode, setCors } = require('../lib/validate');
 const { ALL_CHARS, CHAR_INFO, FACTION_INFO, FACTION_ORDER, VALID_CG, clamp } = require('../lib/constants');
 
@@ -8,10 +8,8 @@ const H = 900;
 
 function e(s) {
   return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function deltaLabel(n) {
@@ -22,7 +20,6 @@ function deltaLabel(n) {
 function buildSVG({ code, savedAt, chars, cgNew, cgAll }) {
   const dateStr = savedAt.toISOString().slice(0, 16).replace('T', ' ');
 
-  // ── 헤더 (y: 0~80) ──
   const header = `
     <rect x="0" y="0" width="${W}" height="80" fill="#ffffff08"/>
     <rect x="0" y="0" width="${W}" height="3" fill="#c8c8ff"/>
@@ -35,8 +32,6 @@ function buildSVG({ code, savedAt, chars, cgNew, cgAll }) {
     <line x1="32" y1="72" x2="${W - 32}" y2="72" stroke="#ffffff14" stroke-width="1"/>
   `;
 
-  // ── 진영별 호감도 블록 ──
-  // 6진영, 총 20명. 각 진영 헤더(24px) + 멤버별 행(34px) + 진영 간격(12px)
   const SECT_HEADER_H = 24;
   const ROW_H         = 34;
   const SECT_GAP      = 12;
@@ -47,10 +42,9 @@ function buildSVG({ code, savedAt, chars, cgNew, cgAll }) {
   let factionBlocks = '';
 
   for (const fkey of FACTION_ORDER) {
-    const fac = FACTION_INFO[fkey];
+    const fac  = FACTION_INFO[fkey];
     const fcol = fac.color;
 
-    // 진영 레이블
     factionBlocks += `
       <text x="32" y="${curY + 16}" font-family="'Courier New',monospace"
         font-size="10" fill="${fcol}99" letter-spacing="3">${e(fac.name)}</text>
@@ -59,7 +53,6 @@ function buildSVG({ code, savedAt, chars, cgNew, cgAll }) {
     `;
     curY += SECT_HEADER_H;
 
-    // 멤버 행
     for (const ckey of fac.members) {
       const info   = CHAR_INFO[ckey];
       const col    = info.color;
@@ -88,8 +81,7 @@ function buildSVG({ code, savedAt, chars, cgNew, cgAll }) {
     curY += SECT_GAP;
   }
 
-  // ── CG 섹션 ──
-  const CG_Y    = curY + 8;
+  const CG_Y   = curY + 8;
   const CG_COLS = 10;
   const CELL_W  = Math.floor((W - 64) / CG_COLS);
   const CELL_H  = 16;
@@ -120,7 +112,6 @@ function buildSVG({ code, savedAt, chars, cgNew, cgAll }) {
     });
   });
 
-  // ── 푸터 ──
   const footerY = H - 36;
   const footer = `
     <line x1="32" y1="${footerY - 8}" x2="${W - 32}" y2="${footerY - 8}"
@@ -139,10 +130,7 @@ function buildSVG({ code, savedAt, chars, cgNew, cgAll }) {
   <rect width="${W}" height="${H}" fill="#0d0d14"/>
   <rect x="1" y="1" width="${W - 2}" height="${H - 2}"
     fill="none" stroke="#ffffff18" stroke-width="1" rx="4"/>
-  ${header}
-  ${factionBlocks}
-  ${cgSection}
-  ${footer}
+  ${header}${factionBlocks}${cgSection}${footer}
 </svg>`;
 }
 
@@ -151,9 +139,8 @@ function sendErrorSVG(res, msg) {
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="100" viewBox="0 0 ${W} 100">
   <rect width="${W}" height="100" fill="#1a0a0a"/>
   <rect x="0" y="0" width="${W}" height="3" fill="#d47474"/>
-  <text x="${W / 2}" y="54" text-anchor="middle"
-    font-family="'Courier New',monospace" font-size="14"
-    fill="#d47474">${msg}</text>
+  <text x="${W/2}" y="54" text-anchor="middle"
+    font-family="'Courier New',monospace" font-size="14" fill="#d47474">${e(msg)}</text>
 </svg>`;
   res.setHeader('Content-Type', 'image/svg+xml');
   res.setHeader('Cache-Control', 'no-store');
@@ -170,20 +157,18 @@ module.exports = async (req, res) => {
   const valid = await validateCode(code);
   if (!valid) return sendErrorSVG(res, 'Invalid or missing code');
 
-  // 현재 호감도 파싱
+  // 현재 호감도
   const currAf = {};
   ALL_CHARS.forEach(c => { currAf[c] = clamp(q[`${c}_af`], 0, 100); });
 
-  // 직전 저장 가져오기
-  const { data: prev } = await supabase
-    .from('saves')
-    .select('*')
-    .eq('code', code)
-    .order('saved_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // 직전 저장
+  const { rows: prevRows } = await sql`
+    SELECT * FROM saves WHERE code = ${code}
+    ORDER BY saved_at DESC LIMIT 1
+  `;
+  const prev = prevRows[0] || null;
 
-  // 캐릭터별 delta 계산
+  // delta 계산
   const chars = {};
   ALL_CHARS.forEach(c => {
     const afPrev = prev?.[`${c}_af_curr`] ?? 0;
@@ -198,36 +183,90 @@ module.exports = async (req, res) => {
     return ALL_CHARS.includes(chr) && VALID_CG.includes(id);
   });
 
-  const { data: cgAllData } = await supabase
-    .from('cg_unlocks')
-    .select('cg_id, chr')
-    .eq('code', code);
-
-  const cgAll = (cgAllData || []).map(r => `${r.chr}_${r.cg_id}`);
+  const { rows: cgAllRows } = await sql`
+    SELECT chr, cg_id FROM cg_unlocks WHERE code = ${code}
+  `;
+  const cgAll = cgAllRows.map(r => `${r.chr}_${r.cg_id}`);
 
   if (cgNew.length > 0) {
-    const cgRows = cgNew.map(k => {
+    for (const k of cgNew) {
       const [chr, cg_id] = k.split('_');
-      return { code, cg_id, chr };
-    });
-    await supabase
-      .from('cg_unlocks')
-      .upsert(cgRows, { onConflict: 'code,cg_id,chr', ignoreDuplicates: true });
+      await sql`
+        INSERT INTO cg_unlocks (code, chr, cg_id)
+        VALUES (${code}, ${chr}, ${cg_id})
+        ON CONFLICT (code, chr, cg_id) DO NOTHING
+      `;
+    }
   }
 
-  // DB 저장
+  // saves INSERT — 컬럼 동적 구성
   const savedAt = new Date();
-  const row = {
-    code,
-    saved_at: savedAt.toISOString(),
-    cg_new:   cgNew.join(','),
-  };
-  ALL_CHARS.forEach(c => {
-    row[`${c}_af_prev`]  = chars[c].afPrev;
-    row[`${c}_af_curr`]  = chars[c].afCurr;
-    row[`${c}_af_delta`] = chars[c].afDelta;
-  });
-  await supabase.from('saves').insert(row);
+  const cgNewStr = cgNew.join(',');
+
+  // af 값들을 배열로 펼치기
+  const afVals = ALL_CHARS.flatMap(c => [
+    chars[c].afPrev, chars[c].afCurr, chars[c].afDelta
+  ]);
+
+  // 컬럼명 생성
+  const afCols = ALL_CHARS.flatMap(c => [
+    `${c}_af_prev`, `${c}_af_curr`, `${c}_af_delta`
+  ]).join(', ');
+
+  // 파라미터 placeholder ($3 ~ $N)
+  const afPlaceholders = afVals.map((_, i) => `$${i + 3}`).join(', ');
+
+  const { default: pg } = await import('./pg-raw.js').catch(() => ({ default: null }));
+
+  // @vercel/postgres sql tagged template으로 동적 컬럼 처리 불가능하므로
+  // 고정 컬럼 방식으로 직접 INSERT
+  await sql`
+    INSERT INTO saves (
+      code, saved_at, cg_new,
+      nova_af_prev,   nova_af_curr,   nova_af_delta,
+      kalia_af_prev,  kalia_af_curr,  kalia_af_delta,
+      elia_af_prev,   elia_af_curr,   elia_af_delta,
+      rita_af_prev,   rita_af_curr,   rita_af_delta,
+      aira_af_prev,   aira_af_curr,   aira_af_delta,
+      seiran_af_prev, seiran_af_curr, seiran_af_delta,
+      orma_af_prev,   orma_af_curr,   orma_af_delta,
+      darha_af_prev,  darha_af_curr,  darha_af_delta,
+      beret_af_prev,  beret_af_curr,  beret_af_delta,
+      kaine_af_prev,  kaine_af_curr,  kaine_af_delta,
+      isol_af_prev,   isol_af_curr,   isol_af_delta,
+      rhat_af_prev,   rhat_af_curr,   rhat_af_delta,
+      aves_af_prev,   aves_af_curr,   aves_af_delta,
+      edna_af_prev,   edna_af_curr,   edna_af_delta,
+      valka_af_prev,  valka_af_curr,  valka_af_delta,
+      sorai_af_prev,  sorai_af_curr,  sorai_af_delta,
+      fern_af_prev,   fern_af_curr,   fern_af_delta,
+      armo_af_prev,   armo_af_curr,   armo_af_delta,
+      luina_af_prev,  luina_af_curr,  luina_af_delta,
+      ikar_af_prev,   ikar_af_curr,   ikar_af_delta
+    ) VALUES (
+      ${code}, ${savedAt.toISOString()}, ${cgNewStr},
+      ${chars.nova.afPrev},   ${chars.nova.afCurr},   ${chars.nova.afDelta},
+      ${chars.kalia.afPrev},  ${chars.kalia.afCurr},  ${chars.kalia.afDelta},
+      ${chars.elia.afPrev},   ${chars.elia.afCurr},   ${chars.elia.afDelta},
+      ${chars.rita.afPrev},   ${chars.rita.afCurr},   ${chars.rita.afDelta},
+      ${chars.aira.afPrev},   ${chars.aira.afCurr},   ${chars.aira.afDelta},
+      ${chars.seiran.afPrev}, ${chars.seiran.afCurr}, ${chars.seiran.afDelta},
+      ${chars.orma.afPrev},   ${chars.orma.afCurr},   ${chars.orma.afDelta},
+      ${chars.darha.afPrev},  ${chars.darha.afCurr},  ${chars.darha.afDelta},
+      ${chars.beret.afPrev},  ${chars.beret.afCurr},  ${chars.beret.afDelta},
+      ${chars.kaine.afPrev},  ${chars.kaine.afCurr},  ${chars.kaine.afDelta},
+      ${chars.isol.afPrev},   ${chars.isol.afCurr},   ${chars.isol.afDelta},
+      ${chars.rhat.afPrev},   ${chars.rhat.afCurr},   ${chars.rhat.afDelta},
+      ${chars.aves.afPrev},   ${chars.aves.afCurr},   ${chars.aves.afDelta},
+      ${chars.edna.afPrev},   ${chars.edna.afCurr},   ${chars.edna.afDelta},
+      ${chars.valka.afPrev},  ${chars.valka.afCurr},  ${chars.valka.afDelta},
+      ${chars.sorai.afPrev},  ${chars.sorai.afCurr},  ${chars.sorai.afDelta},
+      ${chars.fern.afPrev},   ${chars.fern.afCurr},   ${chars.fern.afDelta},
+      ${chars.armo.afPrev},   ${chars.armo.afCurr},   ${chars.armo.afDelta},
+      ${chars.luina.afPrev},  ${chars.luina.afCurr},  ${chars.luina.afDelta},
+      ${chars.ikar.afPrev},   ${chars.ikar.afCurr},   ${chars.ikar.afDelta}
+    )
+  `;
 
   const svg = buildSVG({
     code, savedAt, chars, cgNew,

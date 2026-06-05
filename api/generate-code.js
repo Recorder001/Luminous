@@ -1,7 +1,6 @@
-const supabase = require('../lib/supabase');
+const { sql } = require('../lib/db');
 const { setCors } = require('../lib/validate');
 
-// 5자리 16진수 대문자: 00000 ~ FFFFF (1,048,576 경우의 수)
 function makeCode() {
   const n = Math.floor(Math.random() * 0x100000);
   return n.toString(16).toUpperCase().padStart(5, '0');
@@ -15,9 +14,12 @@ module.exports = async (req, res) => {
   let code, attempts = 0;
   while (attempts < 10) {
     code = makeCode();
-    const { error } = await supabase.from('user_codes').insert({ code });
-    if (!error) break;
-    attempts++;
+    try {
+      await sql`INSERT INTO user_codes (code) VALUES (${code})`;
+      break;
+    } catch {
+      attempts++;
+    }
   }
 
   if (attempts >= 10)

@@ -1,4 +1,4 @@
-// Stat — 900×1200 (3:4) — 20명 전체 호감도
+// Stat — 900px wide, 동적 높이
 const { setCors } = require('../lib/validate');
 const { ALL_CHARS, CHAR_INFO, FACTION_INFO, FACTION_ORDER, clamp } = require('../lib/constants');
 
@@ -9,17 +9,14 @@ const BARH = 10;
 
 function e(s) {
   return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function buildStat(stats) {
-  // 진영별로 그룹핑해서 렌더
-  const SECT_H  = 26;
-  const ROW_H   = 52;
-  const GAP     = 10;
+  const SECT_H = 26;
+  const ROW_H  = 52;
+  const GAP    = 10;
   let curY = 80;
   let rows = '';
 
@@ -59,16 +56,15 @@ function buildStat(stats) {
   }
 
   const H = curY + 40;
-
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <rect width="${W}" height="${H}" fill="#0d0d14"/>
-  <rect x="1" y="1" width="${W - 2}" height="${H - 2}"
+  <rect x="1" y="1" width="${W-2}" height="${H-2}"
     fill="none" stroke="#ffffff1a" stroke-width="1" rx="4"/>
   <rect x="0" y="0" width="${W}" height="3" fill="#c8c8ff"/>
   <text x="30" y="44" font-family="'Courier New',monospace" font-size="11"
     fill="#ffffff55" letter-spacing="3">AFFECTION STATUS</text>
-  <line x1="30" y1="56" x2="${W - 30}" y2="56" stroke="#ffffff18" stroke-width="1"/>
+  <line x1="30" y1="56" x2="${W-30}" y2="56" stroke="#ffffff18" stroke-width="1"/>
   ${rows}
 </svg>`;
 }
